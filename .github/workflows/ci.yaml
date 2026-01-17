@@ -1,6 +1,9 @@
 name: CI
 
 on:
+  push:
+    branches:
+      - '**'
   pull_request:
     branches:
       - main
@@ -27,7 +30,7 @@ jobs:
         with:
           files: target/site/jacoco/jacoco.xml
         env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_ORG_TOKEN }}
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Upload JUnit results
         uses: actions/upload-artifact@v4
