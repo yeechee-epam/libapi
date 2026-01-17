@@ -3,7 +3,8 @@ package com.example.libapi.service;
 import com.example.libapi.dto.BookDto;
 import com.example.libapi.entity.Author;
 import com.example.libapi.entity.Book;
-import com.example.libapi.repository.AuthorRepository;
+//import com.example.libapi.repository.AuthorRepository;
+import com.example.libapi.mapper.BookMapper;
 import com.example.libapi.repository.BookRepository;
 import jakarta.transaction.Transactional;
 
@@ -18,14 +19,19 @@ import java.util.Optional;
 @Service
 public class BookService {
     private final BookRepository bookRepository;
-public BookService(BookRepository bookRepository,AuthorRepository authorRepository,AuthorService authorService)
+    private final BookMapper bookMapper;
+
+public BookService(BookRepository bookRepository,BookMapper bookMapper)
     {
         this.bookRepository=bookRepository;
+        this.bookMapper=bookMapper;
     }
 
-    public Page<Book> list(Pageable pageable)
+    public Page<BookDto> list(Pageable pageable)
     {
-        return bookRepository.findAll(pageable);
+        return bookRepository
+                .findAll(pageable)
+                .map(bookMapper::toDto);
     }
 
 

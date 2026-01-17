@@ -20,11 +20,13 @@ public interface BookMapper {
         if (bookDto.getAuthorId() != null) {
             Author author = new Author();
             author.setId(bookDto.getAuthorId());
-            author.setName(bookDto.getAuthorName()); // Optionally set name if present
+            if (bookDto.getAuthorName() != null && !bookDto.getAuthorName().isBlank()) {
+                author.setName(bookDto.getAuthorName().trim());
+            }
             return author;
         } else if (bookDto.getAuthorName() != null && !bookDto.getAuthorName().isBlank()) {
             Author author = new Author();
-            author.setName(bookDto.getAuthorName());
+            author.setName(bookDto.getAuthorName().trim());
             return author;
         }
         return null;
