@@ -9,6 +9,8 @@ import com.example.libapi.mapper.BookMapper;
 import com.example.libapi.service.BookService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -84,6 +86,28 @@ public ResponseEntity<BookDto> createBook(@Validated @RequestBody BookDto bookDt
     } catch (DuplicateBookException e) {
         return ResponseEntity.status(409).build();
     }
+}
+
+//PUT book
+@Operation(
+        summary = "Update a book's details",
+        description = "Updates the details of a book. Returns 404 if the book does not exist."
+)
+@ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Book updated",
+                content = @Content(schema = @Schema(implementation = BookDto.class))),
+        @ApiResponse(responseCode = "404", description = "Book not found"),
+        @ApiResponse(responseCode = "400", description = "Invalid input")
+})
+@PutMapping("/{id}")
+public ResponseEntity<BookDto> updateBook(
+        @Parameter(description = "Book ID") @PathVariable Long id,
+        @Validated @RequestBody BookDto bookDto
+) {
+    Book updated = bookService.updateBook(id, bookDto);
+    BookDto result = bookMapper.toDto(updated);
+    result.setAuthorLink("/authors/" + updated.getAuthor().getId());
+    return ResponseEntity.ok(result);
 }
 
 }

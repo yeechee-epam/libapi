@@ -124,4 +124,20 @@ public Optional<BookDto> getBookById(Long id) {
                 .build();
         return bookRepository.save(book);
     }
+    @Transactional
+    public Book updateBook(Long id, BookDto bookDto) {
+        Book book = bookRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + id));
+
+        // Find or create author by name (case-insensitive)
+        Author author = authorRepository.findByNameIgnoreCase(bookDto.getAuthorName().trim())
+                .orElseGet(() -> authorRepository.save(
+                        Author.builder().name(bookDto.getAuthorName().trim()).build()));
+
+        // Update book fields
+        book.setName(bookDto.getName().trim());
+        book.setAuthor(author);
+
+        return bookRepository.save(book);
+    }
 }
