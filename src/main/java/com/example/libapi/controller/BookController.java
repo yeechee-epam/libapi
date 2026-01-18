@@ -3,6 +3,7 @@ package com.example.libapi.controller;
 
 import com.example.libapi.dto.BookDto;
 import com.example.libapi.entity.Book;
+import com.example.libapi.exception.DuplicateBookException;
 import com.example.libapi.exception.ResourceNotFoundException;
 import com.example.libapi.mapper.BookMapper;
 import com.example.libapi.service.BookService;
@@ -75,15 +76,14 @@ public class BookController {
 })
 @PostMapping
 public ResponseEntity<BookDto> createBook(@Validated @RequestBody BookDto bookDto) {
-//    BookDto created = bookService.createBook(bookDto);
-//    return ResponseEntity.status(201).body(created);
-    if (bookService.bookExists(bookDto.getName(), bookDto.getAuthorName())) {
-        return ResponseEntity.status(409).build(); // 409 Conflict
+    try {
+        Book created = bookService.create(bookDto);
+        BookDto result = bookMapper.toDto(created);
+        result.setAuthorLink("/authors/" + created.getAuthor().getId());
+        return ResponseEntity.status(201).body(result);
+    } catch (DuplicateBookException e) {
+        return ResponseEntity.status(409).build();
     }
-    Book created = bookService.create(bookDto);
-    BookDto result = bookMapper.toDto(created);
-    result.setAuthorLink("/authors/" + created.getAuthor().getId());
-    return ResponseEntity.status(201).body(result); // 201 Created
-    }
+}
 
 }
