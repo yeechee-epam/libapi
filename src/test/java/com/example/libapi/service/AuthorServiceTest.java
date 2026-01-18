@@ -1,8 +1,10 @@
 package com.example.libapi.service;
 
+import com.example.libapi.dto.AuthorDto;
 import com.example.libapi.dto.AuthorWithBooksPageDto;
 import com.example.libapi.entity.Author;
 import com.example.libapi.entity.Book;
+import com.example.libapi.exception.DuplicateBookException;
 import com.example.libapi.exception.ResourceNotFoundException;
 import com.example.libapi.mapper.AuthorMapper;
 import com.example.libapi.repository.AuthorRepository;
@@ -57,5 +59,36 @@ class AuthorServiceTest {
         assertThatThrownBy(() -> authorService.getAuthorWithBooksPage(99L, PageRequest.of(0, 10)))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Author not found with id: 99");
+    }
+    @Test
+    void createAuthor_success() {
+        AuthorDto dto = new AuthorDto();
+        dto.setName("New Author");
+
+        when(authorRepository.findByNameIgnoreCase("New Author")).thenReturn(Optional.empty());
+        Author saved = Author.builder().id(1L).name("New Author").build();
+        when(authorRepository.save(any(Author.class))).thenReturn(saved);
+
+        AuthorDto expectedDto = new AuthorDto();
+        expectedDto.setId(1L);
+        expectedDto.setName("New Author");
+        when(authorMapper.toDto(any(Author.class))).thenReturn(expectedDto);
+
+        AuthorDto result = authorService.createAuthor(dto);
+
+        assertThat(result.getId()).isEqualTo(1L);
+        assertThat(result.getName()).isEqualTo("New Author");
+    }
+
+    @Test
+    void createAuthor_duplicate_throwsException() {
+        AuthorDto dto = new AuthorDto();
+        dto.setName("Dup Author");
+
+        when(authorRepository.findByNameIgnoreCase("Dup Author")).thenReturn(Optional.of(new Author()));
+
+        assertThatThrownBy(() -> authorService.createAuthor(dto))
+                .isInstanceOf(DuplicateBookException.class)
+                .hasMessageContaining("Author with this name already exists");
     }
 }
