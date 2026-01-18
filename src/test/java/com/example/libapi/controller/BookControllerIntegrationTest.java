@@ -276,4 +276,32 @@ void testCreateBookWithNewAuthorReturns201() {
                 .exchange()
                 .expectStatus().isBadRequest();
     }
+
+
+
+    @Test
+    void testDeleteBookReturns204() {
+        restTestClient.delete().uri("/books/" + bookId)
+                .exchange()
+                .expectStatus().isNoContent();
+
+
+        assertThat(bookRepository.findById(bookId)).isEmpty();
+    }
+
+    @Test
+    void testDeleteBookReturns404ForNonExistentBook() {
+        restTestClient.delete().uri("/books/99999")
+                .exchange()
+                .expectStatus().isNotFound()
+                .expectBody(String.class)
+                .value(body -> assertThat(body).contains("Book not found with id: 99999"));
+    }
+
+    @Test
+    void testDeleteBookReturns400ForInvalidId() {
+        restTestClient.delete().uri("/books/abc")
+                .exchange()
+                .expectStatus().isBadRequest();
+    }
 }
