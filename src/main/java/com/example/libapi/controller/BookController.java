@@ -1,7 +1,11 @@
 package com.example.libapi.controller;
 
+
 import com.example.libapi.dto.BookDto;
+import com.example.libapi.entity.Book;
+import com.example.libapi.exception.DuplicateBookException;
 import com.example.libapi.exception.ResourceNotFoundException;
+import com.example.libapi.mapper.BookMapper;
 import com.example.libapi.service.BookService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -21,9 +25,12 @@ import org.springframework.web.bind.annotation.*;
 @Validated
 public class BookController {
     private final BookService bookService;
+    private final BookMapper bookMapper;
 
-    public BookController(BookService bookService) {
+    public BookController(BookService bookService,BookMapper bookMapper) {
+
         this.bookService = bookService;
+        this.bookMapper = bookMapper;
     }
 
     @Operation(
@@ -56,4 +63,27 @@ public class BookController {
 //                .orElse(ResponseEntity.notFound().build());
                 .orElseThrow(()->new ResourceNotFoundException("Book not found with id: "+id));
     }
+
+//    create new book
+@Operation(
+        summary = "Create a new book",
+        description = "Creates a new book and returns the created book details including author info."
+)
+@ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Book created"),
+        @ApiResponse(responseCode = "409", description = "Duplicate book (same name and author)"),
+        @ApiResponse(responseCode = "400", description = "Invalid input")
+})
+@PostMapping
+public ResponseEntity<BookDto> createBook(@Validated @RequestBody BookDto bookDto) {
+    try {
+        Book created = bookService.create(bookDto);
+        BookDto result = bookMapper.toDto(created);
+        result.setAuthorLink("/authors/" + created.getAuthor().getId());
+        return ResponseEntity.status(201).body(result);
+    } catch (DuplicateBookException e) {
+        return ResponseEntity.status(409).build();
+    }
+}
+
 }
