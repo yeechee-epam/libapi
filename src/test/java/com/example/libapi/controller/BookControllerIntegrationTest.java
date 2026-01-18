@@ -30,6 +30,10 @@ class BookControllerIntegrationTest {
     @Autowired
     private RestTestClient restTestClient;
 
+    private Long bookAId;
+    private Long author1Id;
+    private String author1Name;
+
     @BeforeEach
     void setUp() {
         bookRepository.deleteAll();
@@ -37,8 +41,11 @@ class BookControllerIntegrationTest {
 
         Author author1 = authorRepository.save(Author.builder().name("Author One").build());
         Author author2 = authorRepository.save(Author.builder().name("Author Two").build());
+        author1Id = author1.getId();
+        author1Name = author1.getName();
 
-        bookRepository.save(Book.builder().name("Book A").author(author1).build());
+        Book bookA = bookRepository.save(Book.builder().name("Book A").author(author1).build());
+        bookAId = bookA.getId();
         bookRepository.save(Book.builder().name("Book B").author(author2).build());
     }
 
@@ -54,5 +61,27 @@ class BookControllerIntegrationTest {
                     assertThat(body).contains("Author One");
                     assertThat(body).contains("Author Two");
                 });
+    }
+
+    @Test
+    void testGetBookByIdReturns200AndBookWithAuthorInfoAndLink() {
+        String responseBody = restTestClient.get().uri("/books/" + bookAId)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(String.class)
+                .returnResult()
+                .getResponseBody();
+
+        assertThat(responseBody).contains("Book A");
+        assertThat(responseBody).contains(author1Name);
+        assertThat(responseBody).contains("\"authorId\":" + author1Id);
+        assertThat(responseBody).contains("\"authorLink\":\"/authors/" + author1Id + "\"");
+    }
+
+    @Test
+    void testGetBookByIdReturns404ForNonExistentBook() {
+        restTestClient.get().uri("/books/999999")
+                .exchange()
+                .expectStatus().isNotFound();
     }
 }
