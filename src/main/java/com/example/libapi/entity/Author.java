@@ -3,6 +3,8 @@ package com.example.libapi.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
+
 @Entity
 @Table(name = "authors")
 @AllArgsConstructor
@@ -17,4 +19,6 @@ public class Author {
     private Long id;
     @Column(name = "name",length = 50,nullable = false,unique = true)
     private String name;
+    @OneToMany(mappedBy = "author", fetch = FetchType.LAZY)
+    private List<Book> books;
 }
