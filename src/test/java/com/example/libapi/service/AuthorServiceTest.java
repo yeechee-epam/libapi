@@ -91,4 +91,23 @@ class AuthorServiceTest {
                 .isInstanceOf(DuplicateBookException.class)
                 .hasMessageContaining("Author with this name already exists");
     }
+
+    @Test
+    void deleteAuthor_success() {
+        Author author = Author.builder().id(1L).name("Author Name").build();
+        when(authorRepository.findById(1L)).thenReturn(Optional.of(author));
+
+        authorService.deleteAuthor(1L);
+
+        verify(authorRepository).delete(author);
+    }
+
+    @Test
+    void deleteAuthor_notFound_throwsException() {
+        when(authorRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> authorService.deleteAuthor(99L))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Author not found with id: 99");
+    }
 }

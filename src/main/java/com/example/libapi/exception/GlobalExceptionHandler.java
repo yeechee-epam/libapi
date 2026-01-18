@@ -76,4 +76,12 @@ public class GlobalExceptionHandler {
         error.put("error", ex.getMessage());
         return new ResponseEntity<>(error, HttpStatus.CONFLICT);
     }
+
+    @ExceptionHandler(AuthorHasBooksException.class)
+    public ResponseEntity<Map<String, String>> handleAuthorHasBooksException(AuthorHasBooksException ex) {
+        Map<String, String> error = new HashMap<>();
+        error.put("error", ex.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.CONFLICT); // 409
+    }
+
 }
