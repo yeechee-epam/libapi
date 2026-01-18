@@ -8,4 +8,5 @@ public class BookDto {
     private String name;
     private Long authorId;//existing author
     private String authorName;//new author or search
+    private String authorLink;
 }
