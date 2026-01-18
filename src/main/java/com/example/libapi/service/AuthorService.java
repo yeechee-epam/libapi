@@ -71,4 +71,10 @@ public class AuthorService {
         Author saved = authorRepository.save(author);
         return authorMapper.toDto(saved);
     }
+    @Transactional
+    public void deleteAuthor(Long id) {
+        Author author = authorRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Author not found with id: " + id));
+        authorRepository.delete(author);
+    }
 }
