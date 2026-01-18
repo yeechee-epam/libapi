@@ -1,7 +1,9 @@
 package com.example.libapi.exception;
 
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -23,10 +25,17 @@ public class GlobalExceptionHandler {
     }
 
     // Handle invalid path variable or request parameter types (e.g., /authors/abc)
-    @ExceptionHandler({NumberFormatException.class, MethodArgumentTypeMismatchException.class})
-    public ResponseEntity<Map<String, String>> handleTypeMismatch(Exception ex) {
+    @ExceptionHandler(NumberFormatException.class)
+    public ResponseEntity<Map<String, String>> handleNumberFormatException(NumberFormatException ex) {
         Map<String, String> error = new HashMap<>();
         error.put("error", "Invalid ID format: " + ex.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<Map<String, String>> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        Map<String, String> error = new HashMap<>();
+        error.put("error", "Invalid parameter: " + ex.getName());
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
@@ -44,5 +53,21 @@ public class GlobalExceptionHandler {
         Map<String, String> error = new HashMap<>();
         error.put("error", ex.getMessage());
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<Map<String, String>> handleConstraintViolationException(ConstraintViolationException ex) {
+        Map<String, String> error
+                = new HashMap<>();
+        error.put("error", ex.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(BindException.class)
+    public ResponseEntity<Map<String, String>> handleBindException(BindException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getFieldErrors().forEach(error ->
+                errors.put(error.getField(), error.getDefaultMessage()));
+        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
 }
