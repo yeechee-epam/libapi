@@ -3,6 +3,7 @@ package com.example.libapi.controller;
 import com.example.libapi.dto.AuthorDto;
 import com.example.libapi.service.AuthorService;
 import com.example.libapi.mapper.AuthorMapper;
+import com.example.libapi.service.BookService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -31,6 +32,11 @@ class AuthorControllerTest {
 
     @MockitoBean
     private AuthorMapper authorMapper;
+
+    @MockitoBean
+    private BookService bookService;
+
+
 
     @Test
     @DisplayName("GET /authors returns paginated list of authors with 200 OK")
