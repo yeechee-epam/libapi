@@ -4,6 +4,7 @@ import com.example.libapi.dto.BookDto;
 import com.example.libapi.entity.Author;
 import com.example.libapi.entity.Book;
 //import com.example.libapi.repository.AuthorRepository;
+import com.example.libapi.exception.DuplicateBookException;
 import com.example.libapi.exception.ResourceNotFoundException;
 import com.example.libapi.mapper.BookMapper;
 import com.example.libapi.repository.AuthorRepository;
@@ -107,6 +108,14 @@ public Optional<BookDto> getBookById(Long id) {
         Author author = authorRepository.findByNameIgnoreCase(bookDto.getAuthorName().trim())
                 .orElseGet(() -> authorRepository.save(
                         Author.builder().name(bookDto.getAuthorName().trim()).build()));
+
+        // Check for duplicate book (same name and author)
+        boolean duplicate = bookRepository
+                .findByNameIgnoreCaseAndAuthor_NameIgnoreCase(bookDto.getName().trim(), author.getName().trim())
+                .isPresent();
+        if (duplicate) {
+            throw new DuplicateBookException("Book with this name and author already exists");
+        }
 
         // Create and save book
         Book book = Book.builder()
