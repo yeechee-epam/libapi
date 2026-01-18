@@ -33,9 +33,20 @@ public BookService(BookRepository bookRepository,BookMapper bookMapper)
                 .findAll(pageable)
                 .map(bookMapper::toDto);
     }
-    public Optional<BookDto> getBookById(Long id) {
-        return bookRepository.findById(id).map(bookMapper::toDto);
-    }
+
+//    public Optional<BookDto> getBookById(Long id) {
+//        return bookRepository.findById(id).map(bookMapper::toDto);
+//    }
+//    map dto to include author link
+public Optional<BookDto> getBookById(Long id) {
+    return bookRepository.findById(id).map(book -> {
+        BookDto dto = bookMapper.toDto(book);
+        if (book.getAuthor() != null && book.getAuthor().getId() != null) {
+            dto.setAuthorLink("/authors/" + book.getAuthor().getId());
+        }
+        return dto;
+    });
+}
 
 
 
