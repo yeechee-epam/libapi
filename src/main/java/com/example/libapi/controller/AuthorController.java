@@ -72,8 +72,10 @@ public ResponseEntity<AuthorWithBooksPageDto> getAuthorById(
         @Parameter(description = "Author ID") @PathVariable Long id,
         @ParameterObject Pageable pageable
 ) {
-    return authorService.getAuthorWithBooksPage(id, pageable)
-            .map(ResponseEntity::ok)
-            .orElse(ResponseEntity.notFound().build());
+//    return authorService.getAuthorWithBooksPage(id, pageable)
+//            .map(ResponseEntity::ok)
+//            .orElse(ResponseEntity.notFound().build());
+    AuthorWithBooksPageDto dto = authorService.getAuthorWithBooksPage(id, pageable);
+    return ResponseEntity.ok(dto);
 }
 }
