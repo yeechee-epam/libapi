@@ -4,6 +4,7 @@ import com.example.libapi.dto.BookDto;
 import com.example.libapi.entity.Author;
 import com.example.libapi.entity.Book;
 import com.example.libapi.mapper.BookMapper;
+import com.example.libapi.repository.AuthorRepository;
 import com.example.libapi.repository.BookRepository;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -19,7 +20,9 @@ import static org.mockito.Mockito.*;
 class BookServiceTest {
     private final BookRepository bookRepository = mock(BookRepository.class);
     private final BookMapper bookMapper = mock(BookMapper.class);
-    private final BookService bookService = new BookService(bookRepository, bookMapper);
+    private final AuthorRepository authorRepository = mock(AuthorRepository.class);
+
+    private final BookService bookService = new BookService(bookRepository, authorRepository,bookMapper);
 
     @Test
     void getBookById_returnsBookDtoWithAuthorLink() {
@@ -57,7 +60,7 @@ class BookServiceTest {
         BookRepository bookRepository = mock(BookRepository.class);
         BookMapper bookMapper = mock(BookMapper.class);
 
-        BookService bookService = new BookService(bookRepository, bookMapper);
+        BookService bookService = new BookService(bookRepository,authorRepository ,bookMapper);
 
         Author author = Author.builder().id(1L).name("Author Name").build();
         Book book = Book.builder().id(10L).name("Book Title").author(author).build();
