@@ -66,35 +66,53 @@ public Optional<BookDto> getBookById(Long id) {
                 });
     }
 
-//create new book
-@Transactional
-public BookDto createBook(BookDto bookDto) {
-    // Find or create author
-    Author author;
-    if (bookDto.getAuthorId() != null) {
-        author = authorRepository.findById(bookDto.getAuthorId())
-                .orElseGet(() -> authorRepository.save(
-                        Author.builder().name(bookDto.getAuthorName()).build()));
-    } else if (bookDto.getAuthorName() != null && !bookDto.getAuthorName().isBlank()) {
-        author = authorRepository.findByNameIgnoreCase(bookDto.getAuthorName())
-                .orElseGet(() -> authorRepository.save(
-                        Author.builder().name(bookDto.getAuthorName().trim()).build()));
-    } else {
-        throw new IllegalArgumentException("Author information is required");
+    public boolean bookExists(String bookName, String authorName) {
+        return bookRepository.findByNameIgnoreCaseAndAuthor_NameIgnoreCase(bookName.trim(), authorName.trim()).isPresent();
     }
 
-    // Create and save book
-    Book book = Book.builder()
-            .name(bookDto.getName())
-            .author(author)
-            .build();
-    Book saved = bookRepository.save(book);
 
-    // Map to DTO and set authorLink
-    BookDto result = bookMapper.toDto(saved);
-    result.setAuthorLink("/authors/" + author.getId());
-    return result;
-}
+    //create new book
+//@Transactional
+//public BookDto createBook(BookDto bookDto) {
+//    // Find or create author
+//    Author author;
+//    if (bookDto.getAuthorId() != null) {
+//        author = authorRepository.findById(bookDto.getAuthorId())
+//                .orElseGet(() -> authorRepository.save(
+//                        Author.builder().name(bookDto.getAuthorName()).build()));
+//    } else if (bookDto.getAuthorName() != null && !bookDto.getAuthorName().isBlank()) {
+//        author = authorRepository.findByNameIgnoreCase(bookDto.getAuthorName())
+//                .orElseGet(() -> authorRepository.save(
+//                        Author.builder().name(bookDto.getAuthorName().trim()).build()));
+//    } else {
+//        throw new IllegalArgumentException("Author information is required");
+//    }
+//
+//    // Create and save book
+//    Book book = Book.builder()
+//            .name(bookDto.getName())
+//            .author(author)
+//            .build();
+//    Book saved = bookRepository.save(book);
+//
+//    // Map to DTO and set authorLink
+//    BookDto result = bookMapper.toDto(saved);
+//    result.setAuthorLink("/authors/" + author.getId());
+//    return result;
+//}
 
+    @Transactional
+    public Book create(BookDto bookDto) {
+        // Find or create author by name (case-insensitive)
+        Author author = authorRepository.findByNameIgnoreCase(bookDto.getAuthorName().trim())
+                .orElseGet(() -> authorRepository.save(
+                        Author.builder().name(bookDto.getAuthorName().trim()).build()));
 
+        // Create and save book
+        Book book = Book.builder()
+                .name(bookDto.getName().trim())
+                .author(author)
+                .build();
+        return bookRepository.save(book);
+    }
 }
