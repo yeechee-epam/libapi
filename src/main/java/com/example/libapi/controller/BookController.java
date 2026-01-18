@@ -110,4 +110,22 @@ public ResponseEntity<BookDto> updateBook(
     return ResponseEntity.ok(result);
 }
 
+//delete book
+@Operation(
+        summary = "Delete a book",
+        description = "Deletes a book by its ID. Returns 204 if successful, 404 if not found."
+)
+@ApiResponses({
+        @ApiResponse(responseCode = "204", description = "Book deleted"),
+        @ApiResponse(responseCode = "404", description = "Book not found"),
+        @ApiResponse(responseCode = "400", description = "Invalid book ID format")
+})
+@DeleteMapping("/{id}")
+public ResponseEntity<Void> deleteBook(
+        @Parameter(description = "Book ID") @PathVariable Long id
+) {
+    bookService.deleteBook(id);
+    return ResponseEntity.noContent().build();
+}
+
 }
