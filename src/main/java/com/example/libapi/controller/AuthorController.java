@@ -2,8 +2,10 @@ package com.example.libapi.controller;
 
 import com.example.libapi.dto.AuthorDto;
 import com.example.libapi.dto.AuthorWithBooksPageDto;
+import com.example.libapi.dto.BookDto;
 import com.example.libapi.mapper.AuthorMapper;
 import com.example.libapi.service.AuthorService;
+import com.example.libapi.service.BookService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -26,11 +28,13 @@ import org.springframework.web.bind.annotation.*;
 public class AuthorController {
     private final AuthorService authorService;
     private final AuthorMapper authorMapper;
+    private final BookService bookService;
 
     @Autowired
-    public AuthorController(AuthorService authorService, AuthorMapper authorMapper) {
+    public AuthorController(AuthorService authorService, AuthorMapper authorMapper,BookService bookService) {
         this.authorService = authorService;
         this.authorMapper = authorMapper;
+        this.bookService = bookService;
     }
 
     @Operation(
@@ -78,4 +82,24 @@ public ResponseEntity<AuthorWithBooksPageDto> getAuthorById(
     AuthorWithBooksPageDto dto = authorService.getAuthorWithBooksPage(id, pageable);
     return ResponseEntity.ok(dto);
 }
+
+    @Operation(
+            summary = "Get paginated list of books by author",
+            description = "Returns a paginated list of all books for a specific author."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Books found"),
+            @ApiResponse(responseCode = "404", description = "Author not found"),
+            @ApiResponse(responseCode = "400", description = "Invalid author ID format")
+    })
+    @GetMapping("/{id}/books")
+    public ResponseEntity<Page<BookDto>> getBooksByAuthor(
+            @Parameter(description = "Author ID") @PathVariable Long id,
+            @Parameter(description = "Page number (0-based)") @RequestParam(defaultValue = "0") @Min(0) int page,
+            @Parameter(description = "Page size") @RequestParam(defaultValue = "10") @Min(1) int size
+    ) {
+        Page<BookDto> result = bookService.findBooksByAuthorId(id, PageRequest.of(page, size));
+        return ResponseEntity.ok(result);
+    }
+
 }
