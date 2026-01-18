@@ -151,4 +151,44 @@ class AuthorControllerIntegrationTest {
                 .expectBody(String.class)
                 .value(body -> assertThat(body).contains("Author with this name already exists"));
     }
+
+
+
+    @Test
+    void testDeleteAuthorReturns204() {
+        Author authorWithNoBook = authorRepository.save(Author.builder().name("Author with no book").build());
+        restTestClient.delete().uri("/authors/" + authorWithNoBook.getId())
+                .exchange()
+                .expectStatus().isNoContent();
+
+        assertThat(authorRepository.findById(authorWithNoBook.getId())).isEmpty();
+    }
+
+    @Test
+    void testDeleteAuthorReturns404ForNonExistentAuthor() {
+        restTestClient.delete().uri("/authors/99999")
+                .exchange()
+                .expectStatus().isNotFound()
+                .expectBody(String.class)
+                .value(body -> assertThat(body).contains("Author not found with id: 99999"));
+    }
+
+    @Test
+    void testDeleteAuthorReturns400ForInvalidId() {
+        restTestClient.delete().uri("/authors/abc")
+                .exchange()
+                .expectStatus().isBadRequest();
+    }
+
+    @Test
+    void testDeleteAuthorReturns409IfHasBooks() {
+        Author author = authorRepository.save(Author.builder().name("Author With Book").build());
+        bookRepository.save(Book.builder().name("Book by Author").author(author).build());
+
+        restTestClient.delete().uri("/authors/" + author.getId())
+                .exchange()
+                .expectStatus().isEqualTo(409)
+                .expectBody(String.class)
+                .value(body -> assertThat(body).contains("Cannot delete author with id: " + author.getId()));
+    }
 }
