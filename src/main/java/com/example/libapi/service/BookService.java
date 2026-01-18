@@ -4,7 +4,9 @@ import com.example.libapi.dto.BookDto;
 import com.example.libapi.entity.Author;
 import com.example.libapi.entity.Book;
 //import com.example.libapi.repository.AuthorRepository;
+import com.example.libapi.exception.ResourceNotFoundException;
 import com.example.libapi.mapper.BookMapper;
+import com.example.libapi.repository.AuthorRepository;
 import com.example.libapi.repository.BookRepository;
 import jakarta.transaction.Transactional;
 
@@ -19,11 +21,13 @@ import java.util.Optional;
 @Service
 public class BookService {
     private final BookRepository bookRepository;
+    private final AuthorRepository authorRepository;
     private final BookMapper bookMapper;
 
-public BookService(BookRepository bookRepository,BookMapper bookMapper)
+public BookService(BookRepository bookRepository,AuthorRepository authorRepository,BookMapper bookMapper)
     {
         this.bookRepository=bookRepository;
+        this.authorRepository=authorRepository;
         this.bookMapper=bookMapper;
     }
 
@@ -46,7 +50,21 @@ public Optional<BookDto> getBookById(Long id) {
         }
         return dto;
     });
+
 }
+
+    public Page<BookDto> findBooksByAuthorId(Long authorId, Pageable pageable) {
+        // Ensure author exists, else throw 404
+        Author author = authorRepository.findById(authorId)
+                .orElseThrow(() -> new ResourceNotFoundException("Author not found with id: " + authorId));
+        // Map books to BookDto, including authorLink
+        return bookRepository.findByAuthorId(authorId, pageable)
+                .map(book -> {
+                    BookDto dto = bookMapper.toDto(book);
+                    dto.setAuthorLink("/authors/" + authorId);
+                    return dto;
+                });
+    }
 
 
 
