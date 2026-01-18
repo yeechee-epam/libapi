@@ -134,6 +134,15 @@ public Optional<BookDto> getBookById(Long id) {
                 .orElseGet(() -> authorRepository.save(
                         Author.builder().name(bookDto.getAuthorName().trim()).build()));
 
+        // Check for duplicate book (same name and author, but different ID)
+        bookRepository.findByNameIgnoreCaseAndAuthor_NameIgnoreCase(bookDto.getName().trim(), author.getName().trim())
+                .ifPresent(existingBook -> {
+                    if (!existingBook.getId().equals(id)) {
+                        throw new DuplicateBookException("Book with this name and author already exists");
+                    }
+                });
+
+
         // Update book fields
         book.setName(bookDto.getName().trim());
         book.setAuthor(author);
