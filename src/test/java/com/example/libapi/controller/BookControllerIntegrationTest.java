@@ -33,11 +33,18 @@ class BookControllerIntegrationTest {
     private Long bookAId;
     private Long author1Id;
     private String author1Name;
-
+    private Long bookId;
+    private Long authorId;
     @BeforeEach
     void setUp() {
         bookRepository.deleteAll();
         authorRepository.deleteAll();
+
+        Author baseAuthor = authorRepository.save(Author.builder().name("Base Author").build());
+        authorId = baseAuthor.getId();
+
+        Book baseBook = bookRepository.save(Book.builder().name("Base Book").author(baseAuthor).build());
+                bookId = baseBook.getId();
 
         Author author1 = authorRepository.save(Author.builder().name("Author One").build());
         Author author2 = authorRepository.save(Author.builder().name("Author Two").build());
@@ -47,6 +54,35 @@ class BookControllerIntegrationTest {
         Book bookA = bookRepository.save(Book.builder().name("Book A").author(author1).build());
         bookAId = bookA.getId();
         bookRepository.save(Book.builder().name("Book B").author(author2).build());
+    }
+
+    @Test
+    void testGetBookByIdReturns200AndAuthorLink() {
+        String responseBody = restTestClient.get().uri("/books/" + bookId)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(String.class)
+                .returnResult()
+                .getResponseBody();
+
+        assertThat(responseBody).contains("Base Book");
+        assertThat(responseBody).contains("\"authorLink\":\"/authors/" + authorId + "\"");
+    }
+
+    @Test
+    void testGetBookByIdReturns404ForNonExistentBook() {
+        restTestClient.get().uri("/books/99999")
+                .exchange()
+                .expectStatus().isNotFound()
+                .expectBody(String.class)
+                .value(body -> assertThat(body).contains("Book not found with id: 99999"));
+    }
+
+    @Test
+    void testGetBookByIdReturns400ForInvalidId() {
+        restTestClient.get().uri("/books/abc")
+                .exchange()
+                .expectStatus().isBadRequest();
     }
 
     @Test
@@ -78,10 +114,10 @@ class BookControllerIntegrationTest {
         assertThat(responseBody).contains("\"authorLink\":\"/authors/" + author1Id + "\"");
     }
 
-    @Test
-    void testGetBookByIdReturns404ForNonExistentBook() {
-        restTestClient.get().uri("/books/999999")
-                .exchange()
-                .expectStatus().isNotFound();
-    }
+//    @Test
+//    void testGetBookByIdReturns404ForNonExistentBook() {
+//        restTestClient.get().uri("/books/999999")
+//                .exchange()
+//                .expectStatus().isNotFound();
+//    }
 }
