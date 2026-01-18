@@ -33,4 +33,16 @@ public class BookController {
         Page<BookDto> result = bookService.list(PageRequest.of(page, size));
         return ResponseEntity.ok(result); // Explicitly returns 200 OK
     }
+    @Operation(
+            summary = "Get details of a specific book",
+            description = "Returns the details of a book, including its author."
+    )
+    @GetMapping("/{id}")
+    public ResponseEntity<BookDto> getBookById(
+            @Parameter(description = "Book ID") @PathVariable Long id
+    ) {
+        return bookService.getBookById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
 }

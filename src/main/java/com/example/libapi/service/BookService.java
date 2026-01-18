@@ -33,6 +33,10 @@ public BookService(BookRepository bookRepository,BookMapper bookMapper)
                 .findAll(pageable)
                 .map(bookMapper::toDto);
     }
+    public Optional<BookDto> getBookById(Long id) {
+        return bookRepository.findById(id).map(bookMapper::toDto);
+    }
+
 
 
 }
