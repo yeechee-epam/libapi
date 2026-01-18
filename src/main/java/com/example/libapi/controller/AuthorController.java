@@ -107,6 +107,7 @@ public ResponseEntity<AuthorWithBooksPageDto> getAuthorById(
             summary = "Create a new author",
             description = "Creates a new author and returns the created author details."
     )
+//    KAN-35: validate (400, 409 etc)
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Author created",
                     content = @Content(schema = @Schema(implementation = AuthorDto.class))),
