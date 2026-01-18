@@ -159,4 +159,11 @@ public Optional<BookDto> getBookById(Long id) {
 
         return bookRepository.save(book);
     }
+//    delete
+@Transactional
+public void deleteBook(Long id) {
+    Book book = bookRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + id));
+    bookRepository.delete(book);
+}
 }
