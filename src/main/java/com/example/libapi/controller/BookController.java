@@ -12,11 +12,13 @@ import jakarta.validation.constraints.Min;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/books")
 @Tag(name = "Books", description = "Operations related to books")
+@Validated
 public class BookController {
     private final BookService bookService;
 
