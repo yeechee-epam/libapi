@@ -4,6 +4,7 @@ import com.example.libapi.dto.AuthorDto;
 import com.example.libapi.dto.AuthorWithBooksPageDto;
 import com.example.libapi.entity.Author;
 import com.example.libapi.entity.Book;
+import com.example.libapi.exception.AuthorHasBooksException;
 import com.example.libapi.exception.DuplicateBookException;
 import com.example.libapi.exception.ResourceNotFoundException;
 import com.example.libapi.mapper.AuthorMapper;
@@ -71,4 +72,17 @@ public class AuthorService {
         Author saved = authorRepository.save(author);
         return authorMapper.toDto(saved);
     }
+    @Transactional
+    public void deleteAuthor(Long id) {
+        Author author = authorRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Author not found with id: " + id));
+//        restrict deletion if author has book/s else delete if no book left in db
+        if (author.getBooks() != null && !author.getBooks().isEmpty()) {
+            throw new AuthorHasBooksException("Cannot delete author with id: " + id + " because they have books in the catalog");
+        }
+
+        authorRepository.delete(author);
+    }
+
+
 }

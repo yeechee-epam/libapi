@@ -119,5 +119,24 @@ public ResponseEntity<AuthorWithBooksPageDto> getAuthorById(
         AuthorDto created = authorService.createAuthor(authorDto);
         return ResponseEntity.status(201).body(created);
     }
+//    delete author
+@Operation(
+        summary = "Delete an author",
+        description = "Deletes an author by their ID. Returns 204 if successful, 404 if not found, 409 is author has book(s)."
+)
+@ApiResponses({
+        @ApiResponse(responseCode = "204", description = "Author deleted"),
+        @ApiResponse(responseCode = "404", description = "Author not found"),
+        @ApiResponse(responseCode = "409", description = "Author has book(s) so cannot be deleted"),
+        @ApiResponse(responseCode = "400", description = "Invalid author ID format")
+})
+@DeleteMapping("/{id}")
+public ResponseEntity<Void> deleteAuthor(
+        @Parameter(description = "Author ID") @PathVariable Long id
+) {
+    authorService.deleteAuthor(id);
+    return ResponseEntity.noContent().build();
+}
+
 
 }
