@@ -1,22 +1,18 @@
 package com.example.libapi.dto;
 
 import lombok.Data;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
 
 @Data
-public class AuthorDto {
+public class AuthorWithBooksPageDto {
     private Long id;
     private String name;
-    //    kan-45 view author page
-    private List<BookSummaryDto> books; // Add this
+    private Page<BookSummaryDto> books; // paginated books
 
     @Data
     public static class BookSummaryDto {
         private Long id;
         private String name;
-        private String bookLink;//to direct to book page
-
+        private String bookLink;
     }
-//    end of kan-45
 }
