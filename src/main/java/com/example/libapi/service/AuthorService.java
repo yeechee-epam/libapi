@@ -4,6 +4,7 @@ import com.example.libapi.dto.AuthorDto;
 import com.example.libapi.dto.AuthorWithBooksPageDto;
 import com.example.libapi.entity.Author;
 import com.example.libapi.entity.Book;
+import com.example.libapi.exception.DuplicateBookException;
 import com.example.libapi.exception.ResourceNotFoundException;
 import com.example.libapi.mapper.AuthorMapper;
 import com.example.libapi.repository.AuthorRepository;
@@ -12,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -56,5 +58,17 @@ public class AuthorService {
         dto.setName(author.getName());
         dto.setBooks(bookPage);
         return dto;
+    }
+    @Transactional
+    public AuthorDto createAuthor(AuthorDto authorDto) {
+        // Check for duplicate
+        if (authorRepository.findByNameIgnoreCase(authorDto.getName().trim()).isPresent()) {
+            throw new DuplicateBookException("Author with this name already exists");
+        }
+        Author author = Author.builder()
+                .name(authorDto.getName().trim())
+                .build();
+        Author saved = authorRepository.save(author);
+        return authorMapper.toDto(saved);
     }
 }
