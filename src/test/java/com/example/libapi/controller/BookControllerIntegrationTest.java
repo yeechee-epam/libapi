@@ -12,6 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.client.RestTestClient;
+import org.springframework.http.MediaType;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -120,4 +121,81 @@ class BookControllerIntegrationTest {
 //                .exchange()
 //                .expectStatus().isNotFound();
 //    }
+@Test
+void testCreateBookWithNewAuthorReturns201() {
+    String requestBody = """
+            {
+                "name": "Integration Book",
+                "authorName": "Integration Author"
+            }
+            """;
+    String responseBody = restTestClient.post().uri("/books")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(requestBody)
+            .exchange()
+            .expectStatus().isCreated()
+            .expectBody(String.class)
+            .returnResult()
+            .getResponseBody();
+
+    assertThat(responseBody).contains("Integration Book");
+    assertThat(responseBody).contains("Integration Author");
+    assertThat(responseBody).contains("authorLink");
+}
+
+    @Test
+    void testCreateBookWithExistingAuthorReturns201() {
+        Author author = authorRepository.save(Author.builder().name("Existing Author").build());
+        String requestBody = """
+            {
+                "name": "Another Book",
+                "authorName": "Existing Author"
+            }
+            """;
+        String responseBody = restTestClient.post().uri("/books")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(requestBody)
+                .exchange()
+                .expectStatus().isCreated()
+                .expectBody(String.class)
+                .returnResult()
+                .getResponseBody();
+
+        assertThat(responseBody).contains("Another Book");
+        assertThat(responseBody).contains("Existing Author");
+        assertThat(responseBody).contains("authorLink");
+    }
+
+    @Test
+    void testCreateBookDuplicateReturns409() {
+        Author author = authorRepository.save(Author.builder().name("Dup Author").build());
+        bookRepository.save(Book.builder().name("Dup Book").author(author).build());
+
+        String requestBody = """
+            {
+                "name": "Dup Book",
+                "authorName": "Dup Author"
+            }
+            """;
+        restTestClient.post().uri("/books")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(requestBody)
+                .exchange()
+                .expectStatus().isEqualTo(409);
+    }
+
+    @Test
+    void testCreateBookValidationFails() {
+        String requestBody = """
+            {
+                "name": "",
+                "authorName": ""
+            }
+            """;
+        restTestClient.post().uri("/books")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(requestBody)
+                .exchange()
+                .expectStatus().isBadRequest();
+    }
 }

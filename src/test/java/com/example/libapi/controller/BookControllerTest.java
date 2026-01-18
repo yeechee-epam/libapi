@@ -1,6 +1,7 @@
 package com.example.libapi.controller;
 
 import com.example.libapi.dto.BookDto;
+import com.example.libapi.mapper.BookMapper;
 import com.example.libapi.service.BookService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,6 +34,9 @@ class BookControllerTest {
 
     @MockitoBean
     private BookService bookService;
+
+    @MockitoBean
+    private BookMapper bookMapper;
 
     @Test
     @DisplayName("GET /books returns paginated list of books")

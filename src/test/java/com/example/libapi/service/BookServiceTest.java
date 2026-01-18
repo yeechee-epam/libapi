@@ -3,6 +3,7 @@ package com.example.libapi.service;
 import com.example.libapi.dto.BookDto;
 import com.example.libapi.entity.Author;
 import com.example.libapi.entity.Book;
+import com.example.libapi.exception.DuplicateBookException;
 import com.example.libapi.exception.ResourceNotFoundException;
 import com.example.libapi.mapper.BookMapper;
 import com.example.libapi.repository.AuthorRepository;
@@ -114,4 +115,55 @@ class BookServiceTest {
         assertEquals("Book Title", result.getContent().get(0).getName());
         assertEquals(1L, result.getContent().get(0).getAuthorId());
     }
+    @Test
+    void createBook_createsNewAuthorIfNotExists() {
+        BookDto dto = new BookDto();
+        dto.setName("Book Title");
+        dto.setAuthorName("New Author");
+
+        when(authorRepository.findByNameIgnoreCase("New Author")).thenReturn(Optional.empty());
+        Author savedAuthor = Author.builder().id(1L).name("New Author").build();
+        when(authorRepository.save(any(Author.class))).thenReturn(savedAuthor);
+        when(bookRepository.findByNameIgnoreCaseAndAuthor_NameIgnoreCase("Book Title", "New Author")).thenReturn(Optional.empty());
+        Book savedBook = Book.builder().id(10L).name("Book Title").author(savedAuthor).build();
+        when(bookRepository.save(any(Book.class))).thenReturn(savedBook);
+
+        Book result = bookService.create(dto);
+
+        assertThat(result.getName()).isEqualTo("Book Title");
+        assertThat(result.getAuthor().getName()).isEqualTo("New Author");
+    }
+
+    @Test
+    void createBook_usesExistingAuthorIfExists() {
+        BookDto dto = new BookDto();
+        dto.setName("Book Title");
+        dto.setAuthorName("Existing Author");
+
+        Author existingAuthor = Author.builder().id(2L).name("Existing Author").build();
+        when(authorRepository.findByNameIgnoreCase("Existing Author")).thenReturn(Optional.of(existingAuthor));
+        when(bookRepository.findByNameIgnoreCaseAndAuthor_NameIgnoreCase("Book Title", "Existing Author")).thenReturn(Optional.empty());
+        Book savedBook = Book.builder().id(11L).name("Book Title").author(existingAuthor).build();
+        when(bookRepository.save(any(Book.class))).thenReturn(savedBook);
+
+        Book result = bookService.create(dto);
+
+        assertThat(result.getAuthor().getId()).isEqualTo(2L);
+    }
+
+    @Test
+    void createBook_throwsDuplicateBookException() {
+        BookDto dto = new BookDto();
+        dto.setName("Book Title");
+        dto.setAuthorName("Author");
+
+        Author author = Author.builder().id(3L).name("Author").build();
+        when(authorRepository.findByNameIgnoreCase("Author")).thenReturn(Optional.of(author));
+        when(bookRepository.findByNameIgnoreCaseAndAuthor_NameIgnoreCase("Book Title", "Author")).thenReturn(Optional.of(new Book()));
+
+        assertThatThrownBy(() -> bookService.create(dto))
+                .isInstanceOf(DuplicateBookException.class)
+                .hasMessageContaining("Book with this name and author already exists");
+    }
+
 }
