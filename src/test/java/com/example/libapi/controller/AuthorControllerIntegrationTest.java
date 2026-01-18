@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.client.RestTestClient;
@@ -96,5 +97,58 @@ class AuthorControllerIntegrationTest {
                     assertThat(body).contains("Author One");
                     assertThat(body).contains("Author Two");
                 });
+    }
+
+    @Test
+    void testCreateAuthorReturns201AndDetails() {
+        String requestBody = """
+            {
+                "name": "Integration Author"
+            }
+            """;
+        String responseBody = restTestClient.post().uri("/authors")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(requestBody)
+                .exchange()
+                .expectStatus().isCreated()
+                .expectBody(String.class)
+                .returnResult()
+                .getResponseBody();
+
+        assertThat(responseBody).contains("Integration Author");
+        assertThat(responseBody).contains("\"id\":");
+    }
+
+    @Test
+    void testCreateAuthorReturns400ForInvalidName() {
+        String requestBody = """
+            {
+                "name": ""
+            }
+            """;
+        restTestClient.post().uri("/authors")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(requestBody)
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectBody(String.class)
+                .value(body -> assertThat(body).contains("Author name is required"));
+    }
+
+    @Test
+    void testCreateAuthorReturns409ForDuplicate() {
+        authorRepository.save(Author.builder().name("Dup Author").build());
+        String requestBody = """
+            {
+                "name": "Dup Author"
+            }
+            """;
+        restTestClient.post().uri("/authors")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(requestBody)
+                .exchange()
+                .expectStatus().isEqualTo(409)
+                .expectBody(String.class)
+                .value(body -> assertThat(body).contains("Author with this name already exists"));
     }
 }
