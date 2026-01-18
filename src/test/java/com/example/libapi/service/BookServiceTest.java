@@ -251,4 +251,24 @@ class BookServiceTest {
                 .hasMessageContaining("Book with this name and author already exists");
     }
 
+    @Test
+    void deleteBook_success() {
+        Book book = Book.builder().id(1L).name("Book Title").build();
+        when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
+
+        bookService.deleteBook(1L);
+
+        verify(bookRepository).delete(book);
+    }
+
+    @Test
+    void deleteBook_notFound_throwsException() {
+        when(bookRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> bookService.deleteBook(99L))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Book not found with id: 99");
+    }
+
+
 }
