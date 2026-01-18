@@ -56,4 +56,21 @@ public class BookController {
 //                .orElse(ResponseEntity.notFound().build());
                 .orElseThrow(()->new ResourceNotFoundException("Book not found with id: "+id));
     }
+
+//    create new book
+@Operation(
+        summary = "Create a new book",
+        description = "Creates a new book and returns the created book details including author info."
+)
+@ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Book created"),
+        @ApiResponse(responseCode = "400", description =
+                "Invalid input")
+})
+@PostMapping
+public ResponseEntity<BookDto> createBook(@Validated @RequestBody BookDto bookDto) {
+    BookDto created = bookService.createBook(bookDto);
+    return ResponseEntity.status(201).body(created);
+}
+
 }
