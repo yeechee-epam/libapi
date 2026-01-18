@@ -39,4 +39,16 @@ public class AuthorController {
                 .map(authorMapper::toDto);
         return ResponseEntity.ok(result);
     }
+    @Operation(
+            summary = "Get details of a specific author",
+            description = "Returns the details of an author and all their books."
+    )
+    @GetMapping("/{id}")
+    public ResponseEntity<AuthorDto> getAuthorById(
+            @Parameter(description = "Author ID") @PathVariable Long id
+    ) {
+        return authorService.getAuthorById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
 }
