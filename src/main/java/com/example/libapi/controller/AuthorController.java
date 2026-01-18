@@ -20,6 +20,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -100,6 +101,23 @@ public ResponseEntity<AuthorWithBooksPageDto> getAuthorById(
     ) {
         Page<BookDto> result = bookService.findBooksByAuthorId(id, PageRequest.of(page, size));
         return ResponseEntity.ok(result);
+    }
+
+    @Operation(
+            summary = "Create a new author",
+            description = "Creates a new author and returns the created author details."
+    )
+//    KAN-35: validate (400, 409 etc)
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Author created",
+                    content = @Content(schema = @Schema(implementation = AuthorDto.class))),
+            @ApiResponse(responseCode = "409", description = "Duplicate author"),
+            @ApiResponse(responseCode = "400", description = "Invalid input")
+    })
+    @PostMapping
+    public ResponseEntity<AuthorDto> createAuthor(@Validated @RequestBody AuthorDto authorDto) {
+        AuthorDto created = authorService.createAuthor(authorDto);
+        return ResponseEntity.status(201).body(created);
     }
 
 }
