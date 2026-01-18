@@ -124,4 +124,39 @@ public Optional<BookDto> getBookById(Long id) {
                 .build();
         return bookRepository.save(book);
     }
+    @Transactional
+    public Book updateBook(Long id, BookDto bookDto) {
+        Book book = bookRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + id));
+
+        // Find author if there is id or create author by name (case-insensitive)
+//        Author author = authorRepository.findByNameIgnoreCase(bookDto.getAuthorName().trim())
+//                .orElseGet(() -> authorRepository.save(
+//                        Author.builder().name(bookDto.getAuthorName().trim()).build()));
+        Author author = null;
+        if (bookDto.getAuthorId() != null) {
+            author = authorRepository.findById(bookDto.getAuthorId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Author not found with id: " + bookDto.getAuthorId()));
+        } else if (bookDto.getAuthorName() != null && !bookDto.getAuthorName().isBlank()) {
+            author = authorRepository.findByNameIgnoreCase(bookDto.getAuthorName().trim())
+                    .orElseGet(() -> authorRepository.save(
+                            Author.builder().name(bookDto.getAuthorName().trim()).build()));
+        } else {
+            throw new IllegalArgumentException("Author information is required");
+        }
+        // Check for duplicate book (same name and author, but different ID)
+        bookRepository.findByNameIgnoreCaseAndAuthor_NameIgnoreCase(bookDto.getName().trim(), author.getName().trim())
+                .ifPresent(existingBook -> {
+                    if (!existingBook.getId().equals(id)) {
+                        throw new DuplicateBookException("Book with this name and author already exists");
+                    }
+                });
+
+
+        // Update book fields
+        book.setName(bookDto.getName().trim());
+        book.setAuthor(author);
+
+        return bookRepository.save(book);
+    }
 }

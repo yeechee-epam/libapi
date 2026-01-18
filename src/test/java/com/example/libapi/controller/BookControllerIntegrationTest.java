@@ -198,4 +198,82 @@ void testCreateBookWithNewAuthorReturns201() {
                 .exchange()
                 .expectStatus().isBadRequest();
     }
+    @Test
+    void testUpdateBookReturns200AndUpdatedDetails() {
+        Author author = authorRepository.save(Author.builder().name("Update Author").build());
+        Book book = bookRepository.save(Book.builder().name("Old Book").author(author).build());
+
+        String requestBody = """
+        {
+            "name": "Updated Book",
+            "authorName": "Update Author"
+        }
+        """;
+        String responseBody = restTestClient.put().uri("/books/" + book.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(requestBody)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(String.class)
+                .returnResult()
+                .getResponseBody();
+
+        assertThat(responseBody).contains("Updated Book");
+        assertThat(responseBody).contains("Update Author");
+        assertThat(responseBody).contains("\"authorLink\":\"/authors/" + author.getId() + "\"");
+    }
+
+    @Test
+    void testUpdateBookReturns404ForNonExistentBook() {
+        String requestBody = """
+        {
+            "name": "Doesn't Matter",
+            "authorName": "Any Author"
+        }
+        """;
+        restTestClient.put().uri("/books/99999")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(requestBody)
+                .exchange()
+                .expectStatus().isNotFound()
+                .expectBody(String.class)
+                .value(body -> assertThat(body).contains("Book not found with id: 99999"));
+    }
+
+    @Test
+    void testUpdateBookReturns409ForDuplicate() {
+        Author author = authorRepository.save(Author.builder().name("Dup Author").build());
+        Book book1 = bookRepository.save(Book.builder().name("Book 1").author(author).build());
+        Book book2 = bookRepository.save(Book.builder().name("Book 2").author(author).build());
+
+        String requestBody = """
+        {
+            "name": "Book 1",
+            "authorName": "Dup Author"
+        }
+        """;
+        restTestClient.put().uri("/books/" + book2.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(requestBody)
+                .exchange()
+                .expectStatus().isEqualTo(409);
+    }
+
+    @Test
+    void testUpdateBookReturns400ForValidationError() {
+        Author author = authorRepository.save(Author.builder().name("Val Author").build());
+        Book book = bookRepository.save(Book.builder().name("Val Book").author(author).build());
+
+        String requestBody = """
+        {
+            "name": "",
+            "authorName": ""
+        }
+        """;
+        restTestClient.put().uri("/books/" + book.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(requestBody)
+                .exchange()
+                .expectStatus().isBadRequest();
+    }
 }

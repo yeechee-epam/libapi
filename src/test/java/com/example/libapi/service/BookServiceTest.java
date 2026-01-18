@@ -165,5 +165,90 @@ class BookServiceTest {
                 .isInstanceOf(DuplicateBookException.class)
                 .hasMessageContaining("Book with this name and author already exists");
     }
+    @Test
+    void updateBook_updatesBookWithAuthorId() {
+        // Arrange
+        Book existingBook = Book.builder().id(1L).name("Old Name").build();
+        Author newAuthor = Author.builder().id(2L).name("New Author").build();
+        BookDto dto = new BookDto();
+        dto.setName("New Name");
+        dto.setAuthorId(2L);
+
+        when(bookRepository.findById(1L)).thenReturn(Optional.of(existingBook));
+        when(authorRepository.findById(2L)).thenReturn(Optional.of(newAuthor));
+        when(bookRepository.findByNameIgnoreCaseAndAuthor_NameIgnoreCase("New Name", "New Author")).thenReturn(Optional.empty());
+        when(bookRepository.save(any(Book.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // Act
+        Book updated = bookService.updateBook(1L, dto);
+
+        // Assert
+        assertThat(updated.getName()).isEqualTo("New Name");
+        assertThat(updated.getAuthor()).isEqualTo(newAuthor);
+    }
+
+    @Test
+    void updateBook_updatesBookWithAuthorName() {
+        Book existingBook = Book.builder().id(1L).name("Old Name").build();
+        Author newAuthor = Author.builder().id(2L).name("New Author").build();
+        BookDto dto = new BookDto();
+        dto.setName("New Name");
+        dto.setAuthorName("New Author");
+
+        when(bookRepository.findById(1L)).thenReturn(Optional.of(existingBook));
+        when(authorRepository.findByNameIgnoreCase("New Author")).thenReturn(Optional.of(newAuthor));
+        when(bookRepository.findByNameIgnoreCaseAndAuthor_NameIgnoreCase("New Name", "New Author")).thenReturn(Optional.empty());
+        when(bookRepository.save(any(Book.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Book updated = bookService.updateBook(1L, dto);
+
+        assertThat(updated.getName()).isEqualTo("New Name");
+        assertThat(updated.getAuthor()).isEqualTo(newAuthor);
+    }
+
+    @Test
+    void updateBook_throwsResourceNotFoundExceptionIfBookNotFound() {
+        when(bookRepository.findById(99L)).thenReturn(Optional.empty());
+        BookDto dto = new BookDto();
+        dto.setName("Name");
+        dto.setAuthorName("Author");
+
+        assertThatThrownBy(() -> bookService.updateBook(99L, dto))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Book not found with id: 99");
+    }
+
+    @Test
+    void updateBook_throwsResourceNotFoundExceptionIfAuthorIdNotFound() {
+        Book existingBook = Book.builder().id(1L).name("Old Name").build();
+        BookDto dto = new BookDto();
+        dto.setName("Name");
+        dto.setAuthorId(123L);
+
+        when(bookRepository.findById(1L)).thenReturn(Optional.of(existingBook));
+        when(authorRepository.findById(123L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> bookService.updateBook(1L, dto))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Author not found with id: 123");
+    }
+
+    @Test
+    void updateBook_throwsDuplicateBookExceptionIfDuplicateExists() {
+        Book existingBook = Book.builder().id(1L).name("Old Name").build();
+        Author author = Author.builder().id(2L).name("Author").build();
+        Book duplicateBook = Book.builder().id(2L).name("New Name").author(author).build();
+        BookDto dto = new BookDto();
+        dto.setName("New Name");
+        dto.setAuthorName("Author");
+
+        when(bookRepository.findById(1L)).thenReturn(Optional.of(existingBook));
+        when(authorRepository.findByNameIgnoreCase("Author")).thenReturn(Optional.of(author));
+        when(bookRepository.findByNameIgnoreCaseAndAuthor_NameIgnoreCase("New Name", "Author")).thenReturn(Optional.of(duplicateBook));
+
+        assertThatThrownBy(() -> bookService.updateBook(1L, dto))
+                .isInstanceOf(DuplicateBookException.class)
+                .hasMessageContaining("Book with this name and author already exists");
+    }
 
 }
