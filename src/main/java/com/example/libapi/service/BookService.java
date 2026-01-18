@@ -129,11 +129,21 @@ public Optional<BookDto> getBookById(Long id) {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + id));
 
-        // Find or create author by name (case-insensitive)
-        Author author = authorRepository.findByNameIgnoreCase(bookDto.getAuthorName().trim())
-                .orElseGet(() -> authorRepository.save(
-                        Author.builder().name(bookDto.getAuthorName().trim()).build()));
-
+        // Find author if there is id or create author by name (case-insensitive)
+//        Author author = authorRepository.findByNameIgnoreCase(bookDto.getAuthorName().trim())
+//                .orElseGet(() -> authorRepository.save(
+//                        Author.builder().name(bookDto.getAuthorName().trim()).build()));
+        Author author = null;
+        if (bookDto.getAuthorId() != null) {
+            author = authorRepository.findById(bookDto.getAuthorId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Author not found with id: " + bookDto.getAuthorId()));
+        } else if (bookDto.getAuthorName() != null && !bookDto.getAuthorName().isBlank()) {
+            author = authorRepository.findByNameIgnoreCase(bookDto.getAuthorName().trim())
+                    .orElseGet(() -> authorRepository.save(
+                            Author.builder().name(bookDto.getAuthorName().trim()).build()));
+        } else {
+            throw new IllegalArgumentException("Author information is required");
+        }
         // Check for duplicate book (same name and author, but different ID)
         bookRepository.findByNameIgnoreCaseAndAuthor_NameIgnoreCase(bookDto.getName().trim(), author.getName().trim())
                 .ifPresent(existingBook -> {
