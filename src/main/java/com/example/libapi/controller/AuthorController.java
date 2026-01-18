@@ -1,15 +1,22 @@
 package com.example.libapi.controller;
 
 import com.example.libapi.dto.AuthorDto;
+import com.example.libapi.dto.AuthorWithBooksPageDto;
 import com.example.libapi.mapper.AuthorMapper;
 import com.example.libapi.service.AuthorService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Min;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,4 +46,36 @@ public class AuthorController {
                 .map(authorMapper::toDto);
         return ResponseEntity.ok(result);
     }
+//    @Operation(
+//            summary = "Get details of a specific author",
+//            description = "Returns the details of an author and all their books."
+//    )
+//    @GetMapping("/{id}")
+//    public ResponseEntity<AuthorDto> getAuthorById(
+//            @Parameter(description = "Author ID") @PathVariable Long id
+//    ) {
+//        return authorService.getAuthorById(id)
+//                .map(ResponseEntity::ok)
+//                .orElse(ResponseEntity.notFound().build());
+//    }
+@Operation(
+        summary = "Get details of a specific author",
+        description = "Returns the details of an author and a paginated list of their books."
+)
+@ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Author found",
+                content = @Content(schema = @Schema(implementation = AuthorWithBooksPageDto.class))),
+        @ApiResponse(responseCode = "404", description = "Author not found")
+})
+@GetMapping("/{id}")
+public ResponseEntity<AuthorWithBooksPageDto> getAuthorById(
+        @Parameter(description = "Author ID") @PathVariable Long id,
+        @ParameterObject Pageable pageable
+) {
+//    return authorService.getAuthorWithBooksPage(id, pageable)
+//            .map(ResponseEntity::ok)
+//            .orElse(ResponseEntity.notFound().build());
+    AuthorWithBooksPageDto dto = authorService.getAuthorWithBooksPage(id, pageable);
+    return ResponseEntity.ok(dto);
+}
 }
