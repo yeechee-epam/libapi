@@ -16,8 +16,10 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 //@org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
@@ -66,5 +68,39 @@ class BookControllerTest {
                         .param("size", "10")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("GET /books/{id} returns book with author info and link")
+    void testGetBookByIdReturnsBookWithAuthorInfoAndLink() throws Exception {
+        // Arrange
+        BookDto bookDto = new BookDto();
+        bookDto.setId(10L);
+        bookDto.setName("Book Title");
+        bookDto.setAuthorId(2L);
+        bookDto.setAuthorName("Author Name");
+        bookDto.setAuthorLink("/authors/2");
+
+        Mockito.when(bookService.getBookById(10L)).thenReturn(Optional.of(bookDto));
+
+        // Act & Assert
+        mockMvc.perform(get("/books/10")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(10))
+                .andExpect(jsonPath("$.name").value("Book Title"))
+                .andExpect(jsonPath("$.authorId").value(2))
+                .andExpect(jsonPath("$.authorName").value("Author Name"))
+                .andExpect(jsonPath("$.authorLink").value("/authors/2"));
+    }
+
+    @Test
+    @DisplayName("GET /books/{id} returns 404 for non-existent book")
+    void testGetBookByIdReturns404() throws Exception {
+        Mockito.when(bookService.getBookById(anyLong())).thenReturn(Optional.empty());
+
+        mockMvc.perform(get("/books/99999")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
     }
 }
