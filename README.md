@@ -123,3 +123,11 @@ This strategy is optimal in a multi-instance cluster because in the case of conc
 Deletion restriction is used for deletion of author that has books. This prevents loss of book records and is in line with data integrity.
 If a user is to delete an author, user must remove every book the author has. 
 
+## System design considerations
+### Database:
+Consider the scenario: to handle thousands of inserts/second in a multi-instance database setup (e.g., PostgreSQL with Patroni) on a Kubernetes cluster, we should consider the trade-offs between different scaling strategies - replication, partitioning (within a single DB), sharding, and others to apply the optimal strategy.
+
+In this application, sharding enables write scaling as it spreads write operations across multiple nodes (shards), increasing write throughput. Hence, it is well-suited for our application that serves users across multiple zones. It comes with some overhead, but it is viable for the horizontal scaling and load balancing.
+As for the other strategies, replication improves read scalability but not write scalability. Partitioning might improve write throughput within 1 DB instance but not beyond the limits of 1 server.
+
+For future consideration, we can consider a distributed DB (e.g., Cassandra) that applies a combination of above strategies.
