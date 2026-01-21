@@ -1,0 +1,28 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002
+      author: yeechee
+      preConditions:
+        - dbms:
+            type: postgresql
+      changes:
+        - insert:
+            tableName: authors
+            columns:
+              - column: { name: name, value: "William Shakespeare" }
+        - insert:
+            tableName: authors
+            columns:
+              - column: { name: name, value: "Jane Austen" }
+
+        - insert:
+            tableName: books
+            columns:
+              - column: { name: name, value: "Romeo and Juliet" }
+              - column: { name: author_id, valueNumeric: 1 }
+
+        - insert:
+            tableName: books
+            columns:
+              - column: { name: name, value: "Pride and Prejudice" }
+              - column: { name: author_id, valueNumeric: 2 }

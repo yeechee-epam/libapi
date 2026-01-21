@@ -1,0 +1,5 @@
+databaseChangeLog:
+  - include:
+      file: /src/main/resources/db/changelog/001-create-tables.yaml
+  - include:
+      file: /src/main/resources/db/changelog/002-insert-sample-data.yaml
