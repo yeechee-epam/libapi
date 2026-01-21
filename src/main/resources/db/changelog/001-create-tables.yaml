@@ -15,6 +15,8 @@ databaseChangeLog:
                   autoIncrement: true
                   constraints:
                     primaryKey: true
+                    nullable: false
+                    primaryKeyName: pk_authors
               - column:
                   name: name
                   type: VARCHAR(50)
@@ -28,9 +30,13 @@ databaseChangeLog:
               - column:
                   name: id
                   type: BIGINT
+#                  generationType: auto
+
                   autoIncrement: true
+
                   constraints:
                     primaryKey: true
+                    nullable: false
               - column:
                   name: name
                   type: VARCHAR(50)
@@ -42,6 +48,8 @@ databaseChangeLog:
                   type: BIGINT
                   constraints:
                     nullable: false
+#                    foreignKeyName: fk_books_authors
+                    references: authors(id)
 
         - addForeignKeyConstraint:
             baseTableName: books
