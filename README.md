@@ -11,55 +11,76 @@ A Spring Boot app for CRUD operations of a library's books and authors.
 ## Setup & Running
 1. Clone repo and set up application properties:
   ```bash
-  git clone git clone https://github.com/yeechee-epam/libapi.git 
+  git clone https://github.com/yeechee-epam/libapi.git 
   cd libapi/src/main/resources
   touch application.properties
   cat <<EOF > application.properties
   spring.application.name=libapi
   server.port=8080
-  spring.datasource.username=USERNAME
-  spring.datasource.password=PASSWORD
+  spring.datasource.username=admin
+  spring.datasource.password=root
   spring.datasource.driver-class-name=org.postgresql.Driver
   spring.datasource.url=jdbc:postgresql://localhost:7543/libapidb
 
-  spring.jpa.hibernate.ddl-auto=update
+  # Hibernate is disabled because Liquibase will manage schema
+  spring.jpa.hibernate.ddl-auto=none
   spring.jpa.show-sql=true
   spring.jpa.properties.hibernate.format_sql=true
   spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
+
+  #liquibase
+  spring.liquibase.enabled=true
+  spring.liquibase.change-log=classpath:db/changelog/db.changelog-master.yaml
   EOF
   ```
-2. Start database:
+2. Update liquibase configurations:
+   - in local dev environment, change values of db.username and db.password in pom.xml:
+      ```bash
+		<profile>
+			<id>dev</id>
+			<properties>
+				<db.username><your_username>></db.username>
+				<db.password><your_password></db.password>
+				<!--run mvn liquibase:update -Pdev in local dev environment-->
+			</properties>
+		</profile>
+      ```
+   - in local dev environment, run following to run liquibase migration:
+      ```bash
+       mvn clean compile
+       mvn liquibase:update -Pdev 
+      ```
+     - in case of "liquibase.exception.ValidationFailedException: Validation Failed: 1 changesets check sum" error, run:
+        ```bash
+       mvn liquibase:clearCheckSums -Pdev
+        ```
+   
+3. Start database:
    ```bash
    docker-compose up -d
-3. Open a shell in your running PostgreSQL container:
+4. Open a shell in your running PostgreSQL container:
    ```bash
    docker exec -it postgres bash
-4. Connect to PostgreSQL:
+5. Connect to PostgreSQL:
    ```bash
     psql -U <username>
-5. Create database:
-   ```bash
-   CREATE DATABASE libapidb;
-6. Connect to the database:
+   
+6. Connect to the database to check that data have been populated:
     ```bash
    \c libapidb
-   
-7. Insert sample data:
-    ```bash
-   INSERT INTO authors (name) VALUES ('Sample Author');
-   INSERT INTO books (name, author_id) VALUES ('Sample Book', 1); 
-8. Exit:
+   SELECT * FROM authors;
+   SELECT * FROM books;
+
+7. Exit:
     ```bash
    \q
     exit
    
-9. Run application in your local environment:
+8. Run application in your local environment:
     ```bash
    mvn spring-boot:run
-10. Access application at http://localhost:8080
-   
-   
-To-do: use migration tool like Liquidbase in next iteration
+9. Access application at http://localhost:8080
+
 
 ## API documentation
 Swagger UI: http://localhost:8080/swagger-ui.html
