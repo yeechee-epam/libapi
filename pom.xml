@@ -129,9 +129,30 @@
 			<artifactId>h2</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.liquibase</groupId>
+			<artifactId>liquibase-core</artifactId>
+		</dependency>
 
 	</dependencies>
-
+	<profiles>
+		<profile>
+			<id>dev</id>
+			<properties>
+				<db.username>admin</db.username>
+				<db.password>root</db.password>
+				<!--				run mvn liquibase:update -Pdev in local dev environment-->
+			</properties>
+		</profile>
+		<profile>
+			<id>prod</id>
+			<properties>
+				<db.username>${env.DB_USERNAME}</db.username>
+				<db.password>${env.DB_PASSWORD}</db.password>
+<!--				to run prod profile outside of Github Actions worklow, in terminal, run export DB_USERNAME=db-username, export DB_PASSWORD=db-pw, mvn liquibase:update -Pprod then run app-->
+			</properties>
+		</profile>
+	</profiles>
 	<build>
 		<plugins>
 			<plugin>
@@ -149,6 +170,7 @@
 <!--						</path>-->
 <!--						&lt;!&ndash; other annotation processors &ndash;&gt;-->
 <!--					</annotationProcessorPaths>-->
+
 				</configuration>
 			</plugin>
 			<plugin>
@@ -170,6 +192,24 @@
 			 					</execution>
 			 				</executions>
 			 			</plugin>
+			<plugin>
+				<groupId>org.liquibase</groupId>
+				<artifactId>liquibase-maven-plugin</artifactId>
+				<version>5.0.0</version>
+				<configuration>
+					<changeLogFile>src/main/resources/db/changelog/db.changelog-master.yaml</changeLogFile>
+					<diffChangeLogFile>src/main/resources/db/changelog/${maven.build.timestamp}_changelog.yaml</diffChangeLogFile>
+					<driver>org.postgresql.Driver</driver>
+					<url>jdbc:postgresql://localhost:7543/libapidb</url>
+					<defaultSchemaName />
+					<username>${db.username}</username>
+					<password>${db.password}</password>
+					<referenceUrl>hibernate:spring:com.example?dialect=org.hibernate.dialect.PostgreSQLDialect
+						&amp;hibernate.physical_naming_strategy=org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
+						&amp;hibernate.implicit_naming_strategy=org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
+					</referenceUrl>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 
