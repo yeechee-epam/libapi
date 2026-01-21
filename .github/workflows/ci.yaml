@@ -12,6 +12,21 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: ${{secrets.DB_USERNAME}}
+          POSTGRES_PASSWORD: ${{secrets.DB_PASSWORD}}
+          POSTGRES_DB: libapidb
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -21,6 +36,19 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
+
+      - name: Wait for PostgreSQL to be ready
+        run: |
+            for i in {1..10}; do
+            pg_isready -h localhost -p 5432 && break
+            sleep 5
+            done
+
+      - name: Run Liquibase migration
+        run: mvn liquibase:update -Pdev
+        env:
+            DB_USERNAME: ${{secrets.DB_USERNAME}}
+            DB_PASSWORD: ${{secrets.DB_PASSWORD}}
 
       - name: Run unit tests and generate JaCoCo report
         run: mvn clean test jacoco:report
