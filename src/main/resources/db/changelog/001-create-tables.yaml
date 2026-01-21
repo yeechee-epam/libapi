@@ -46,10 +46,10 @@ databaseChangeLog:
               - column:
                   name: author_id
                   type: BIGINT
-                  constraints:
-                    nullable: false
-                    foreignKeyName: fk_books_authors
-                    references: authors(id)
+#                  constraints:
+#                    nullable: false
+#                    foreignKeyName: fk_books_authors
+#                    references: authors(id)
 
         - addForeignKeyConstraint:
             baseTableName: books
