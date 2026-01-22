@@ -1,5 +1,9 @@
 databaseChangeLog:
   - include:
-      file: /src/main/resources/db/changelog/001-create-tables.yaml
+      file: db/changelog/001-create-tables.yaml
+#      relativeToChangelogFile: true
   - include:
-      file: /src/main/resources/db/changelog/002-insert-sample-data.yaml
+      file: db/changelog/002-insert-sample-data.yaml
+#      relativeToChangelogFile: true
+#  - include: classpath:db/changelog/001-create-tables.yaml
+#  - include: classpath:db/changelog/002-insert-sample-data.yaml

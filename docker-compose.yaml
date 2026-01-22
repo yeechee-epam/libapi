@@ -3,6 +3,7 @@ services:
     container_name: postgres
     image: postgres
     environment:
+      POSTGRES_DB: libapidb
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: root
       PGDATA: /data/postgres
@@ -14,6 +15,8 @@ services:
       - postgres
     restart: unless-stopped
 
+#use psql -U admin -d libapidb to access libapidb after docker exec -it bash postgres
+
 networks:
   postgres:
     driver: bridge
@@ -21,3 +24,4 @@ networks:
 volumes:
   postgres:
   pgadmin:
+
