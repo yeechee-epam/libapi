@@ -26,6 +26,9 @@ jobs:
           --health-retries 5
         ports:
           - 7543:5432
+    env:
+      DB_USERNAME: ${{secrets.DB_USERNAME}}
+      DB_PASSWORD: ${{secrets.DB_PASSWORD}}
 
     steps:
       - name: Checkout code
@@ -44,11 +47,11 @@ jobs:
             sleep 5
             done
 
-      - name: Run Liquibase migration
-        run: mvn liquibase:update -Pprod
-        env:
-            DB_USERNAME: ${{secrets.DB_USERNAME}}
-            DB_PASSWORD: ${{secrets.DB_PASSWORD}}
+#      - name: Run Liquibase migration
+#        run: mvn liquibase:update -Pprod
+#        env:
+#            DB_USERNAME: ${{secrets.DB_USERNAME}}
+#            DB_PASSWORD: ${{secrets.DB_PASSWORD}}
 
       - name: Run unit tests and generate JaCoCo report
         run: mvn clean test jacoco:report
