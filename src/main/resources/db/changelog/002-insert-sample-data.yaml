@@ -10,7 +10,6 @@ databaseChangeLog:
             tableName: authors
             columns:
               - column: { name: name, value: "William Shakespeare" }
-              - column: { name: id, valueNumeric: 1 }
 #        - insert:
 #            tableName: authors
 #            columns:
@@ -34,16 +33,3 @@ databaseChangeLog:
 #              - column: { name: name, value: "Pride and Prejudice" }
 #              - column: { name: author_id, valueNumeric: 2 }
 
-      rollback:
-        - delete:
-            tableName: books
-            where: "name = 'Romeo and Juliet' AND author_id = 1"
-        - delete:
-            tableName: books
-            where: "name = 'Pride and Prejudice' AND author_id = 2"
-        - delete:
-            tableName: authors
-            where: "id = 1 AND name = 'William Shakespeare'"
-        - delete:
-            tableName: authors
-            where: "id = 2 AND name = 'Jane Austen'"
