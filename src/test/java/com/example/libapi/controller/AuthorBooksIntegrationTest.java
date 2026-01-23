@@ -4,22 +4,39 @@ import com.example.libapi.entity.Author;
 import com.example.libapi.entity.Book;
 import com.example.libapi.repository.AuthorRepository;
 import com.example.libapi.repository.BookRepository;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.client.RestTestClient;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
-@ActiveProfiles({"test"})
-@SpringBootTest
-@AutoConfigureRestTestClient
+//@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
+//@ActiveProfiles({"test"}) //no need; test container will inject db config
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Testcontainers
+@AutoConfigureRestTestClient //for RestTestClient
 class AuthorBooksIntegrationTest {
+
+    @Container
+    @ServiceConnection
+    static PostgreSQLContainer<?>postgreSQLContainer=
+            new PostgreSQLContainer<>("postgres")
+                    .withDatabaseName("libapidb_test")
+                    .withUsername("admin")
+                    .withPassword("root");
 
     @Autowired
     private AuthorRepository authorRepository;
@@ -33,6 +50,15 @@ class AuthorBooksIntegrationTest {
     private Long authorId;
     private Long book1Id;
     private Long book2Id;
+
+    /*
+    *  @BeforeEach
+  void setUp() {
+    RestAssured.baseURI = "http://localhost:" + port;
+    customerRepository.deleteAll();
+  }
+  * not needed because of @RestTestClient as Spring Boot automatically inject port & configure client
+    * */
 
     @BeforeEach
     void setUp() {

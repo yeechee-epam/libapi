@@ -9,21 +9,32 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.client.RestTestClient;
 //import org.springframework.boot.resttestclient.RestTestClient;
 import org.springframework.http.HttpStatus;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-//@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
-@ActiveProfiles({"test"})
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Testcontainers
 @AutoConfigureRestTestClient
 class AuthorControllerIntegrationTest {
+
+    @Container
+    @ServiceConnection
+    static PostgreSQLContainer<?> postgreSQLContainer=
+            new PostgreSQLContainer<>("postgres")
+                    .withDatabaseName("libapidb_test")
+                    .withUsername("admin")
+                    .withPassword("root");
+
 
     @Autowired
     private AuthorRepository authorRepository;
@@ -40,8 +51,9 @@ class AuthorControllerIntegrationTest {
 
     @BeforeEach
     void setUp() {
+
+        bookRepository.deleteAll();//delete books first to avoid constraint with deleting author when their book exist
         authorRepository.deleteAll();
-        bookRepository.deleteAll();
 //        authorRepository.save(Author.builder().name("Author One").build());
 //        authorRepository.save(Author.builder().name("Author Two").build());
         Author author = authorRepository.save(Author.builder().name("Author One").build());

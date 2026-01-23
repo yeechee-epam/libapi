@@ -132,11 +132,17 @@ GET /authors/{id}/books
 - Returns a paginated list of all books for a specific author (params = page num, size)
 - return 200, 400, 0r 404
 
-## Unit testing
-The unit tests are run against an in-memory H2 database.
+## Unit testing & Integration testing
+The tests are run against an in-memory H2 database.
   ```bash
-  mvn clean test
+  mvn clean test -Pdev
   ```
+
+We are using @TestContainers, @SpringBootTest, and @AutoConfigureRestTestClient:
+- @TestContainers for containerizing temporary independent Postgres DB for each test run. Alongside application.properties which specifies Liquibase migration (like in production environment) for the container, we can truly test actual with actual parameters of our DB.
+- @SpringBootTest for launching full Spring Boot application context, for end-to-end testing
+- @AutoConfigureRestTestClient for auto-configuring REST clients, which is aware of random port and base URI by the test server, replicating true HTTP requests
+
 ## Data modelling decision
 Primary key strategy is based on auto generation / auto incrementation of each record ID (`@GeneratedValue(strategy = GenerationType.IDENTITY)`).
 This strategy is optimal in a multi-instance cluster because in the case of concurrent writes to same central database, the database uses internal locking and increment id to locked thread, thereby generating unique ID to each record.
@@ -152,3 +158,14 @@ In this application, sharding enables write scaling as it spreads write operatio
 As for the other strategies, replication improves read scalability but not write scalability. Partitioning might improve write throughput within 1 DB instance but not beyond the limits of 1 server.
 
 For future consideration, we can consider a distributed DB (e.g., Cassandra) that applies a combination of above strategies.
+
+## References:
+### Integration testing:
+- https://dev.to/mspilari/integration-tests-on-spring-boot-with-postgresql-and-testcontainers-4dpc
+
+### Liquibase integration with Spring Boot:
+- https://github.com/code-with-bellsoft/liquibase-demo
+- https://github.com/liquibase/liquibase-postgresql
+- https://github.com/PheaSoy/spring-boot-liquibase/tree/2e0ff1abe331f1080c22866ea77ce1673bf6ea69
+
+
