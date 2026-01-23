@@ -48,12 +48,12 @@ jobs:
             done
 
 #      - name: Run Liquibase migration
-#        run: mvn liquibase:update -Pprod
-#        env:
-#            DB_USERNAME: ${{secrets.DB_USERNAME}}
-#            DB_PASSWORD: ${{secrets.DB_PASSWORD}}
+      #        run: mvn liquibase:update -Pprod
+      #        env:
+      #            DB_USERNAME: ${{secrets.DB_USERNAME}}
+      #            DB_PASSWORD: ${{secrets.DB_PASSWORD}}
 
-      - name: Run unit tests and generate JaCoCo report
+      - name: Run tests and generate JaCoCo report
         run: mvn clean test jacoco:report
 
       - name: Upload coverage to Codecov
