@@ -17,6 +17,22 @@ services:
 
 #use psql -U admin -d libapidb to access libapidb after docker exec -it bash postgres
 
+#  db_test:
+#    container_name: postgres-test
+#    image: postgres
+#    environment:
+#      POSTGRES_DB: libapidb-test
+#      POSTGRES_USER: admin
+#      POSTGRES_PASSWORD: root
+#      PGDATA: /data/postgres
+#    volumes:
+#      - postgres:/data/postgres
+#    ports:
+#      - "7542:5432"
+#    networks:
+#      - postgres
+#    restart: unless-stopped
+
 networks:
   postgres:
     driver: bridge
