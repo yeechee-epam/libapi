@@ -162,8 +162,8 @@ For future consideration, we can consider a distributed DB (e.g., Cassandra) tha
 ## References:
 ### Integration testing:
 - https://dev.to/mspilari/integration-tests-on-spring-boot-with-postgresql-and-testcontainers-4dpc
-
-### Liquibase integration with Spring Boot:
+- https://testcontainers.com/guides/testing-spring-boot-rest-api-using-testcontainers/
+#### Liquibase integration with Spring Boot:
 - https://github.com/code-with-bellsoft/liquibase-demo
 - https://github.com/liquibase/liquibase-postgresql
 - https://github.com/PheaSoy/spring-boot-liquibase/tree/2e0ff1abe331f1080c22866ea77ce1673bf6ea69
