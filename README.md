@@ -9,77 +9,63 @@ A Spring Boot app for CRUD operations of a library's books and authors.
 - Docker
 
 ## Setup & Running
-1. Clone repo and set up application properties:
+1. Clone repo and set up application properties and application-dev.properties:
   ```bash
   git clone https://github.com/yeechee-epam/libapi.git 
   cd libapi/src/main/resources
   touch application.properties
+  touch application-dev.properties
   cat <<EOF > application.properties
-  spring.application.name=libapi
-  server.port=8080
-  spring.datasource.username=admin
-  spring.datasource.password=root
-  spring.datasource.driver-class-name=org.postgresql.Driver
-  spring.datasource.url=jdbc:postgresql://localhost:7543/libapidb
+  spring.profiles.active=dev
+  EOF
+  cat <<EOF > application-dev.properties
+  spring.liquibase.change-log=classpath:/db/changelog/db.changelog-master.yaml
 
-  # Hibernate is disabled because Liquibase will manage schema
-  spring.jpa.hibernate.ddl-auto=none
-  spring.jpa.show-sql=true
-  spring.jpa.properties.hibernate.format_sql=true
-  spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
+spring.application.name=libapi
+server.port=8080
+spring.datasource.username=admin
+spring.datasource.password=root
+spring.datasource.driver-class-name=org.postgresql.Driver
+spring.datasource.url=jdbc:postgresql://localhost:7543/libapidb
 
-  #liquibase
-  spring.liquibase.enabled=true
-  spring.liquibase.change-log=classpath:db/changelog/db.changelog-master.yaml
+
+# Hibernate is disabled because Liquibase will manage schema
+spring.jpa.hibernate.ddl-auto=none
+spring.jpa.show-sql=true
   EOF
   ```
 2. Update liquibase configurations:
    - in local dev environment, change values of db.username and db.password in pom.xml:
-      ```bash
-		<profile>
+   ```bash
+	  <profile>
 			<id>dev</id>
 			<properties>
 				<db.username><your_username>></db.username>
 				<db.password><your_password></db.password>
-				<!--run mvn liquibase:update -Pdev in local dev environment-->
-			</properties>
-		</profile>
-      ```
-   - in local dev environment, run following to run liquibase migration:
-      ```bash
-       mvn clean compile
-       mvn liquibase:update -Pdev 
-      ```
-     - in case of "liquibase.exception.ValidationFailedException: Validation Failed: 1 changesets check sum" error, run:
-        ```bash
-       mvn liquibase:clearCheckSums -Pdev
-        ```
-   
+				</properties>
+	  </profile>
+    ``` 
 3. Start database:
    ```bash
    docker-compose up -d
-4. Open a shell in your running PostgreSQL container:
-   ```bash
-   docker exec -it postgres bash
-5. Connect to PostgreSQL:
-   ```bash
-    psql -U <username>
+4. Run application in your local environment:
+    ```bash
+   mvn spring-boot:run -Pdev
    
-6. Connect to the database to check that data have been populated:
-    ```bash
-   \c libapidb
-   SELECT * FROM authors;
-   SELECT * FROM books;
-
-7. Exit:
-    ```bash
-   \q
-    exit
-   
-8. Run application in your local environment:
-    ```bash
-   mvn spring-boot:run
-9. Access application at http://localhost:8080
+5. Access application at http://localhost:8080
+6. To confirm that data has been populated:
+   1. open a shell in your running PostgreSQL container:
+      ```bash
+      docker exec -it postgres bash
+    2. Connect to PostgreSQL:
+       ```bash
+       psql -U <username> -d libapidb
+       SELECT * FROM authors;
+       SELECT * FROM books;
+    3. Exit:
+       ```bash
+       \q
+       exit
 
 
 ## API documentation
