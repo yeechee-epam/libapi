@@ -1,0 +1,10 @@
+<div class="nav-bar__buttons">
+    <ng-container *ngIf="isAuthenticated$ | async; else unAuthenticated">
+        <app-logout-button></app-logout-button>
+    </ng-container>
+    <ng-template #unAuthenticated>
+        <app-signup-button></app-signup-button>
+        <app-login-button></app-login-button>
+    </ng-template>
+</div>
+<!--Auth0's isAuthenticated$ value reflects the authentication state of your users as tracked by the Auth0 Angular SDK plugin. This value is true when the user has been authenticated and false when not-->
