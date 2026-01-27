@@ -30,14 +30,13 @@ public class AuthorController {
     private final AuthorService authorService;
     private final AuthorMapper authorMapper;
     private final BookService bookService;
-
     @Autowired
     public AuthorController(AuthorService authorService, AuthorMapper authorMapper,BookService bookService) {
         this.authorService = authorService;
         this.authorMapper = authorMapper;
         this.bookService = bookService;
     }
-
+//private final...& constructor can be replaced by @//the above 3 lines = @RequiredArgsConstructor
     @Operation(
             summary = "Get paginated list of authors",
             description = "Returns a paginated list of all available authors."

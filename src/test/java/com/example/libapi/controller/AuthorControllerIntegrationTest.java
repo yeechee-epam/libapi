@@ -1,5 +1,6 @@
 package com.example.libapi.controller;
 
+import com.example.libapi.config.TestSecurityConfig;
 import com.example.libapi.entity.Author;
 import com.example.libapi.entity.Book;
 import com.example.libapi.repository.AuthorRepository;
@@ -10,9 +11,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.client.RestTestClient;
 //import org.springframework.boot.resttestclient.RestTestClient;
 import org.springframework.http.HttpStatus;
@@ -25,6 +29,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Testcontainers
 @AutoConfigureRestTestClient
+//1/26-2 bcos there is a conflict btw security config n main n testsecurityconfig class in test
+@ActiveProfiles({"test"})//no need; test container will inject db config
+//1/26-disable security issues at endpoint (disable auth0)
+@Import(TestSecurityConfig.class)
+
 class AuthorControllerIntegrationTest {
 
     @Container
@@ -44,6 +53,9 @@ class AuthorControllerIntegrationTest {
 
     @Autowired
     private RestTestClient restTestClient;
+    //    1/26-mocking oauth2's ClientRegistrationRepository client bean to avoid authentication issue
+    @MockitoBean
+    private ClientRegistrationRepository clientRegistrationRepository;
 
     private Long authorId;
     private Long book1Id;

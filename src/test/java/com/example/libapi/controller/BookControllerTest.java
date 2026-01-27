@@ -1,5 +1,7 @@
 package com.example.libapi.controller;
 
+import com.example.libapi.config.ApplicationProperties;
+import com.example.libapi.config.TestSecurityConfig;
 import com.example.libapi.dto.BookDto;
 import com.example.libapi.mapper.BookMapper;
 import com.example.libapi.service.BookService;
@@ -10,9 +12,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 //import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 //import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.*;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -24,9 +29,17 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 //@org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
-
 @WebMvcTest(BookController.class)
 @AutoConfigureRestTestClient
+@org.springframework.test.context.TestPropertySource(properties = {
+
+//1/26-to disable all oauth2
+"spring.autoconfigure.exclude=org.springframework.boot.security.oauth2.client.autoconfigure.OAuth2ClientAutoConfiguration,org.springframework.boot.security.oauth2.client.autoconfigure.servlet.OAuth2ClientWebSecurityAutoConfiguration,org.springframework.boot.security.oauth2.client.autoconfigure.reactive.ReactiveOAuth2ClientAutoConfiguration,org.springframework.boot.security.oauth2.client.autoconfigure.reactive.ReactiveOAuth2ClientWebSecurityAutoConfiguration,org.springframework.boot.security.oauth2.client.autoconfigure.reactive.ReactiveOAuth2ClientWebSecurityAutoConfiguration,org.springframework.boot.security.oauth2.server.resource.autoconfigure.servlet.OAuth2ResourceServerAutoConfiguration,org.springframework.boot.security.oauth2.server.resource.autoconfigure.reactive.ReactiveOAuth2ResourceServerAutoConfiguration"
+})
+//1/26-2 bcos there is a conflict btw security config n main n testsecurityconfig class in test
+@ActiveProfiles({"test"})//no need; test container will inject db config
+
+//@AutoConfigureMockMvc(addFilters = false)
 class BookControllerTest {
 
     @Autowired
@@ -37,6 +50,9 @@ class BookControllerTest {
 
     @MockitoBean
     private BookMapper bookMapper;
+    //1/27
+    @MockitoBean
+    private ApplicationProperties applicationProperties;
 
     @Test
     @DisplayName("GET /books returns paginated list of books")
