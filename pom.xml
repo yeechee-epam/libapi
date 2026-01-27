@@ -241,53 +241,53 @@
 							</execution>
 						</executions>
 					</plugin>
-					<plugin>
-						<groupId>com.github.eirslett</groupId>
-						<artifactId>frontend-maven-plugin</artifactId>
-<!--						<version>${frontend-maven-plugin.version}</version>-->
-						<configuration>
-							<workingDirectory>app</workingDirectory>
-						</configuration>
-						<executions>
-							<execution>
-								<id>install node</id>
-								<goals>
-									<goal>install-node-and-npm</goal>
-								</goals>
-								<configuration>
-									<nodeVersion>${node.version}</nodeVersion>
-									<npmVersion>${npm.version}</npmVersion>
-								</configuration>
-							</execution>
-							<execution>
-								<id>npm install</id>
-								<goals>
-									<goal>npm</goal>
-								</goals>
-								<phase>generate-resources</phase>
-							</execution>
-							<execution>
-								<id>npm test</id>
-								<goals>
-									<goal>npm</goal>
-								</goals>
-								<phase>test</phase>
-								<configuration>
-									<arguments>test -- --watch=false</arguments>
-								</configuration>
-							</execution>
-							<execution>
-								<id>npm build</id>
-								<goals>
-									<goal>npm</goal>
-								</goals>
-								<phase>compile</phase>
-								<configuration>
-									<arguments>run build</arguments>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
+<!--					<plugin>-->
+<!--						<groupId>com.github.eirslett</groupId>-->
+<!--						<artifactId>frontend-maven-plugin</artifactId>-->
+<!--&lt;!&ndash;						<version>${frontend-maven-plugin.version}</version>&ndash;&gt;-->
+<!--						<configuration>-->
+<!--							<workingDirectory>app</workingDirectory>-->
+<!--						</configuration>-->
+<!--						<executions>-->
+<!--							<execution>-->
+<!--								<id>install node</id>-->
+<!--								<goals>-->
+<!--									<goal>install-node-and-npm</goal>-->
+<!--								</goals>-->
+<!--								<configuration>-->
+<!--									<nodeVersion>${node.version}</nodeVersion>-->
+<!--									<npmVersion>${npm.version}</npmVersion>-->
+<!--								</configuration>-->
+<!--							</execution>-->
+<!--							<execution>-->
+<!--								<id>npm install</id>-->
+<!--								<goals>-->
+<!--									<goal>npm</goal>-->
+<!--								</goals>-->
+<!--								<phase>generate-resources</phase>-->
+<!--							</execution>-->
+<!--							<execution>-->
+<!--								<id>npm test</id>-->
+<!--								<goals>-->
+<!--									<goal>npm</goal>-->
+<!--								</goals>-->
+<!--								<phase>test</phase>-->
+<!--								<configuration>-->
+<!--									<arguments>test &#45;&#45; &#45;&#45;watch=false</arguments>-->
+<!--								</configuration>-->
+<!--							</execution>-->
+<!--							<execution>-->
+<!--								<id>npm build</id>-->
+<!--								<goals>-->
+<!--									<goal>npm</goal>-->
+<!--								</goals>-->
+<!--								<phase>compile</phase>-->
+<!--								<configuration>-->
+<!--									<arguments>run build</arguments>-->
+<!--								</configuration>-->
+<!--							</execution>-->
+<!--						</executions>-->
+<!--					</plugin>-->
 				</plugins>
 			</build>
 			<properties>
