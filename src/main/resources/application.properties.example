@@ -1,5 +1,5 @@
 spring.application.name=libapi
-server.port=8080
+server.port=6060
 spring.datasource.username=USERNAME
 spring.datasource.password=PASSWORD
 spring.datasource.driver-class-name=org.postgresql.Driver
@@ -14,3 +14,9 @@ spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
 #liquibase
 spring.liquibase.enabled=true
 spring.liquibase.change-log=classpath:db/changelog/db.changelog-master.yaml
+
+#auth0
+
+spring.web.resources.add-mappings=false
+spring.security.oauth2.resourceserver.jwt.audiences=AUDIENCE
+spring.security.oauth2.resourceserver.jwt.issuer-uri=ISSUER

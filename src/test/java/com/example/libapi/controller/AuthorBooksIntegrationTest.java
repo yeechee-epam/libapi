@@ -1,32 +1,45 @@
 package com.example.libapi.controller;
 
+import com.example.libapi.LibapiApplication;
+import com.example.libapi.config.TestSecurityConfig;
 import com.example.libapi.entity.Author;
 import com.example.libapi.entity.Book;
 import com.example.libapi.repository.AuthorRepository;
 import com.example.libapi.repository.BookRepository;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
-import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.context.annotation.Import;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.client.RestTestClient;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.util.Optional;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 //@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
-//@ActiveProfiles({"test"}) //no need; test container will inject db config
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+//1/26-2 bcos there is a conflict btw security config n main n testsecurityconfig class in test
+@ActiveProfiles({"test"})//no need; test container will inject db config
+//1/26-disable security issues at endpoint (disable auth0)
+@Import(TestSecurityConfig.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
+//        ,
+//properties = {
+//        "spring.autoconfigure.exclude=org.springframework.boot.security.oauth2.client.autoconfigure.OAuth2ClientAutoConfiguration,org.springframework.boot.security.oauth2.client.autoconfigure.servlet.OAuth2ClientWebSecurityAutoConfiguration,org.springframework.boot.security.oauth2.client.autoconfigure.reactive.ReactiveOAuth2ClientAutoConfiguration,org.springframework.boot.security.oauth2.client.autoconfigure.reactive.ReactiveOAuth2ClientWebSecurityAutoConfiguration,org.springframework.boot.security.oauth2.client.autoconfigure.reactive.ReactiveOAuth2ClientWebSecurityAutoConfiguration,org.springframework.boot.security.oauth2.server.resource.autoconfigure.servlet.OAuth2ResourceServerAutoConfiguration,org.springframework.boot.security.oauth2.server.resource.autoconfigure.reactive.ReactiveOAuth2ResourceServerAutoConfiguration"
+//}
+//        ,classes = {LibapiApplication.class, TestSecurityConfig.class}
+)
 @Testcontainers
+
+//@AutoConfigureMockMvc(addFilters = false)
+//@WebAppConfiguration
+//@Profile("integration-test")
 @AutoConfigureRestTestClient //for RestTestClient
 class AuthorBooksIntegrationTest {
 
@@ -46,7 +59,9 @@ class AuthorBooksIntegrationTest {
 
     @Autowired
     private RestTestClient restTestClient;
-
+//    1/26-mocking oauth2's ClientRegistrationRepository client bean to avoid authentication issue
+    @MockitoBean
+    private ClientRegistrationRepository clientRegistrationRepository;
     private Long authorId;
     private Long book1Id;
     private Long book2Id;
