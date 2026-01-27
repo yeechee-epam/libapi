@@ -154,4 +154,6 @@ For future consideration, we can consider a distributed DB (e.g., Cassandra) tha
 - https://github.com/liquibase/liquibase-postgresql
 - https://github.com/PheaSoy/spring-boot-liquibase/tree/2e0ff1abe331f1080c22866ea77ce1673bf6ea69
 
+#### auth0:
+- https://github.com/auth0-developer-hub/api_spring_java_hello-world/tree/basic-authorization
 
