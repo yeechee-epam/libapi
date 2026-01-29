@@ -23,10 +23,11 @@ public class ApplicationConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(final CorsRegistry registry) {
         registry.addMapping("/**")
-//                .allowedOrigins(applicationProps.getClientOriginUrl())
-                .allowedOrigins("*")
+                .allowedOrigins(applicationProps.getClientOriginUrl())
+//                .allowedOrigins("*")
                 .allowedHeaders(HttpHeaders.AUTHORIZATION, HttpHeaders.CONTENT_TYPE)
-                .allowedMethods(HttpMethod.GET.name())
+//                .allowedMethods(HttpMethod.GET.name())
+                .allowedMethods("GET","POST","PUT","DELETE","OPTIONS")
                 .maxAge(86400);
         System.out.println("CORS allowed origin: " + applicationProps.getClientOriginUrl());
     }

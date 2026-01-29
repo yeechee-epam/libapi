@@ -11,6 +11,9 @@ import com.example.libapi.repository.AuthorRepository;
 import com.example.libapi.repository.BookRepository;
 import jakarta.transaction.Transactional;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 
 import org.springframework.data.domain.Page;
@@ -104,6 +107,24 @@ public Optional<BookDto> getBookById(Long id) {
 
     @Transactional
     public Book create(BookDto bookDto) {
+//    logging user info
+        Authentication authentication= SecurityContextHolder.getContext()
+                .getAuthentication();
+        String username=authentication.getName();
+//        log email or custom claims
+        String email=null;
+        if(authentication instanceof JwtAuthenticationToken jwtAuth)
+        {
+            Object emailClaim=jwtAuth.getToken().getClaims().get("email");
+            if(emailClaim!=null)email=emailClaim.toString();
+//            Object rolesClaim=jwtAuth.getToken().getClaims().get("https://spring-boot-example/roles");
+//            if(rolesClaim!=null)roles=C
+//            roles = admin/user
+//            authorities=can edit/delete/etc books
+
+        }
+        System.out.println("A book has been created by: "+username+((email!=null)?email:""));
+
         // Find or create author by name (case-insensitive)
         Author author = authorRepository.findByNameIgnoreCase(bookDto.getAuthorName().trim())
                 .orElseGet(() -> authorRepository.save(

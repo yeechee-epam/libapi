@@ -4,9 +4,12 @@ import com.example.libapi.config.security.AuthenticationErrorHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
 
 import lombok.RequiredArgsConstructor;
@@ -24,15 +27,33 @@ public class SecurityConfig {
         return http
                 .authorizeHttpRequests(authz -> authz
                         // Protect these endpoints
-                        .requestMatchers("/api/messages/protected", "/api/messages/admin").authenticated()
+//                        .requestMatchers("/api/messages/protected", "/api/messages/admin").authenticated()
+                        .requestMatchers(HttpMethod.POST,"/books").authenticated()
                         // Allow public access to /books and /books/{id}
-//                        .requestMatchers("/books", "/books/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/books").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/books/**").permitAll()
                         // All other endpoints are public
+//                        .requestMatchers(HttpMethod.POST,"/books").hasRole("admin")
                         .anyRequest().permitAll())
                 .cors(Customizer.withDefaults())
                 .oauth2ResourceServer(oauth2 -> oauth2
-                        .jwt(Customizer.withDefaults())
+//                        .jwt(Customizer.withDefaults())
+//                        .jwtAuthenticationConverter
+                        .jwt(jwt->jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
                         .authenticationEntryPoint(authenticationErrorHandler))
                 .build();
     }
+    @Bean
+    public JwtAuthenticationConverter jwtAuthenticationConverter()
+    {
+        JwtGrantedAuthoritiesConverter converter=new JwtGrantedAuthoritiesConverter();
+//        grantedAuthoritiesConverter.setJwtGrantedAuthoritiesConverter();
+        converter.setAuthoritiesClaimName("https://spring-boot.example.com/roles");
+        converter.setAuthorityPrefix("ROLE_");//Spring prefix for hasRole
+
+        JwtAuthenticationConverter jwtConverter = new JwtAuthenticationConverter();
+        jwtConverter.setJwtGrantedAuthoritiesConverter(converter);
+        return jwtConverter;
+    }
+
 }
