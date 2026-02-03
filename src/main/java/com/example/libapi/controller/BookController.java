@@ -51,8 +51,8 @@ public class BookController {
     @GetMapping
     public ResponseEntity<Page<BookDto>> listBooks(
             @Parameter(description = "Page number (0-based)") @RequestParam(defaultValue = "0") @Min(0) int page,
-            @Parameter(description = "Page size") @RequestParam(defaultValue = "10") @Min(1) int size,
-            @AuthenticationPrincipal OAuth2User user
+            @Parameter(description = "Page size") @RequestParam(defaultValue = "10") @Min(1) int size
+//            @AuthenticationPrincipal OAuth2User user
             ) {
         Page<BookDto> result = bookService.list(PageRequest.of(page, size));
         return ResponseEntity.ok(result); // Explicitly returns 200 OK
