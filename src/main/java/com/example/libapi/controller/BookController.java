@@ -3,6 +3,7 @@ package com.example.libapi.controller;
 
 import com.example.libapi.dto.BookDto;
 import com.example.libapi.entity.Book;
+import com.example.libapi.entity.BookRecommendation;
 import com.example.libapi.exception.DuplicateBookException;
 import com.example.libapi.exception.ResourceNotFoundException;
 import com.example.libapi.mapper.BookMapper;
@@ -25,6 +26,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/books")
@@ -99,7 +103,7 @@ public ResponseEntity<BookDto> createBook(@Validated @RequestBody BookDto bookDt
 }
     //authorities: [ROLE_admin, FactorGrantedAuthority [authority=FACTOR_BEARER, issuedAt=2026-01-29T07:26:19.868597076Z]]
     //principal: org.springframework.security.oauth2.jwt.Jwt@xxx
-    //A book has been created by: github|xxx
+
 
 //PUT book
 @Operation(
@@ -140,5 +144,33 @@ public ResponseEntity<Void> deleteBook(
     bookService.deleteBook(id);
     return ResponseEntity.noContent().build();
 }
+
+// recommend / unrecommend
+@Operation(
+        summary = "Toggle recommendation for a book",
+        description = "Admin can recommend or unrecommend a book."
+)
+@ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Recommendation toggled"),
+        @ApiResponse(responseCode = "404", description = "Book not found"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized")
+})
+@PreAuthorize("hasRole('admin')")
+@PostMapping("/{id}/recommend")
+public ResponseEntity<Map<String, Boolean>> toggleRecommend(
+        @Parameter(description = "Book ID") @PathVariable Long id
+) {
+    boolean recommended = bookService.toggleRecommendBook(id);
+    return ResponseEntity.ok(Map.of("recommended", recommended));
+}
+
+    @GetMapping("/me/recommended-books")
+    public List<BookDto> getRecommendedBooksForCurrentAdmin() {
+        List<Book> books = bookService.getBooksRecommendedByCurrentAdmin();
+        return books.stream().map(bookMapper::toDto).toList();
+    }
+
+
+
 
 }
