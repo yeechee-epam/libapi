@@ -256,3 +256,117 @@ public List<Book> getBooksRecommendedByCurrentAdmin() {
 
 
 }
+
+    public Page<BookDto> findBooksByAuthorId(Long authorId, Pageable pageable) {
+        // Ensure author exists, else throw 404
+        Author author = authorRepository.findById(authorId)
+                .orElseThrow(() -> new ResourceNotFoundException("Author not found with id: " + authorId));
+        // Map books to BookDto, including authorLink
+        return bookRepository.findByAuthorId(authorId, pageable)
+                .map(book -> {
+                    BookDto dto = bookMapper.toDto(book);
+                    dto.setAuthorLink("/authors/" + authorId);
+                    return dto;
+                });
+    }
+
+    public boolean bookExists(String bookName, String authorName) {
+        return bookRepository.findByNameIgnoreCaseAndAuthor_NameIgnoreCase(bookName.trim(), authorName.trim()).isPresent();
+    }
+
+
+    //create new book
+//@Transactional
+//public BookDto createBook(BookDto bookDto) {
+//    // Find or create author
+//    Author author;
+//    if (bookDto.getAuthorId() != null) {
+//        author = authorRepository.findById(bookDto.getAuthorId())
+//                .orElseGet(() -> authorRepository.save(
+//                        Author.builder().name(bookDto.getAuthorName()).build()));
+//    } else if (bookDto.getAuthorName() != null && !bookDto.getAuthorName().isBlank()) {
+//        author = authorRepository.findByNameIgnoreCase(bookDto.getAuthorName())
+//                .orElseGet(() -> authorRepository.save(
+//                        Author.builder().name(bookDto.getAuthorName().trim()).build()));
+//    } else {
+//        throw new IllegalArgumentException("Author information is required");
+//    }
+//
+//    // Create and save book
+//    Book book = Book.builder()
+//            .name(bookDto.getName())
+//            .author(author)
+//            .build();
+//    Book saved = bookRepository.save(book);
+//
+//    // Map to DTO and set authorLink
+//    BookDto result = bookMapper.toDto(saved);
+//    result.setAuthorLink("/authors/" + author.getId());
+//    return result;
+//}
+
+    @Transactional
+    public Book create(BookDto bookDto) {
+        // Find or create author by name (case-insensitive)
+        Author author = authorRepository.findByNameIgnoreCase(bookDto.getAuthorName().trim())
+                .orElseGet(() -> authorRepository.save(
+                        Author.builder().name(bookDto.getAuthorName().trim()).build()));
+
+        // Check for duplicate book (same name and author)
+        boolean duplicate = bookRepository
+                .findByNameIgnoreCaseAndAuthor_NameIgnoreCase(bookDto.getName().trim(), author.getName().trim())
+                .isPresent();
+        if (duplicate) {
+            throw new DuplicateBookException("Book with this name and author already exists");
+        }
+
+        // Create and save book
+        Book book = Book.builder()
+                .name(bookDto.getName().trim())
+                .author(author)
+                .build();
+        return bookRepository.save(book);
+    }
+    @Transactional
+    public Book updateBook(Long id, BookDto bookDto) {
+        Book book = bookRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + id));
+
+        // Find author if there is id or create author by name (case-insensitive)
+//        Author author = authorRepository.findByNameIgnoreCase(bookDto.getAuthorName().trim())
+//                .orElseGet(() -> authorRepository.save(
+//                        Author.builder().name(bookDto.getAuthorName().trim()).build()));
+        Author author = null;
+        if (bookDto.getAuthorId() != null) {
+            author = authorRepository.findById(bookDto.getAuthorId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Author not found with id: " + bookDto.getAuthorId()));
+        } else if (bookDto.getAuthorName() != null && !bookDto.getAuthorName().isBlank()) {
+            author = authorRepository.findByNameIgnoreCase(bookDto.getAuthorName().trim())
+                    .orElseGet(() -> authorRepository.save(
+                            Author.builder().name(bookDto.getAuthorName().trim()).build()));
+        } else {
+            throw new IllegalArgumentException("Author information is required");
+        }
+        // Check for duplicate book (same name and author, but different ID)
+        bookRepository.findByNameIgnoreCaseAndAuthor_NameIgnoreCase(bookDto.getName().trim(), author.getName().trim())
+                .ifPresent(existingBook -> {
+                    if (!existingBook.getId().equals(id)) {
+                        throw new DuplicateBookException("Book with this name and author already exists");
+                    }
+                });
+
+
+        // Update book fields
+        book.setName(bookDto.getName().trim());
+        book.setAuthor(author);
+
+        return bookRepository.save(book);
+    }
+//    delete
+@Transactional
+public void deleteBook(Long id) {
+    Book book = bookRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + id));
+    bookRepository.delete(book);
+}
+}
