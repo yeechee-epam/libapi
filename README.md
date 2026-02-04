@@ -145,6 +145,14 @@ As for the other strategies, replication improves read scalability but not write
 
 For future consideration, we can consider a distributed DB (e.g., Cassandra) that applies a combination of above strategies.
 
+### Authentication & Authorization:
+There are a few different implementation strategies of authorization and authentication in full-stack applications - a frontend app that delegates authorization server, jwt creation, and resource server roles to the backend API, or a frontend SPA that utilizes external ID providers such as Auth0 to act as authorization server and backend API to act as resource server (verifying JWT and enforces authorization).
+This project utilizes Auth0 as the authorization server for the Angular SPA frontend, and Spring Boot as the resource server. The backend leverages Spring Security libraries (such as SecurityContextHolder) to provide security context, verify JWT claims, and enforce authorization rules.
+
+Types of users:
+- visitor: no login/sign up allowed, can view /books, /books/:id, /authors/:id, /authors/:id/books
+- admin: must be logged in, sign up is restricted to assigned persons, can do all CRUD operations as per registered role in Auth0 (no permissions specified within role)
+
 ## References:
 ### Integration testing:
 - https://dev.to/mspilari/integration-tests-on-spring-boot-with-postgresql-and-testcontainers-4dpc
@@ -156,4 +164,6 @@ For future consideration, we can consider a distributed DB (e.g., Cassandra) tha
 
 #### auth0:
 - https://github.com/auth0-developer-hub/api_spring_java_hello-world/tree/basic-authorization
+- https://auth0.com/blog/spring-boot-authorization-tutorial-secure-an-api-java/
+
 

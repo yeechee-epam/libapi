@@ -3,14 +3,20 @@ package com.example.libapi.service;
 import com.example.libapi.dto.BookDto;
 import com.example.libapi.entity.Author;
 import com.example.libapi.entity.Book;
+import com.example.libapi.entity.BookRecommendation;
 import com.example.libapi.exception.DuplicateBookException;
 import com.example.libapi.exception.ResourceNotFoundException;
 import com.example.libapi.mapper.BookMapper;
 import com.example.libapi.repository.AuthorRepository;
+import com.example.libapi.repository.BookRecommendationRepository;
 import com.example.libapi.repository.BookRepository;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.data.domain.*;
+import org.springframework.security.authentication.TestingAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
 import java.util.Optional;
@@ -23,6 +29,139 @@ class BookServiceTest {
     private final BookRepository bookRepository = mock(BookRepository.class);
     private final BookMapper bookMapper = mock(BookMapper.class);
     private final AuthorRepository authorRepository = mock(AuthorRepository.class);
+    private final BookRecommendationRepository bookRecommendationRepository = mock(BookRecommendationRepository.class);
+
+    private final BookService bookService = new BookService(bookRepository, authorRepository,bookMapper,bookRecommendationRepository);
+
+    @BeforeEach
+    void setup() {
+        TestingAuthenticationToken auth =
+                new TestingAuthenticationToken("adminUser", null, "ROLE_admin");
+        SecurityContextHolder.getContext().setAuthentication(auth);
+    }
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    void bookExists_returnsTrueIfBookExists() {
+        when(bookRepository.findByNameIgnoreCaseAndAuthor_NameIgnoreCase("Book Title", "Author Name"))
+                .thenReturn(Optional.of(new Book()));
+
+        boolean exists = bookService.bookExists("Book Title", "Author Name");
+
+        assertThat(exists).isTrue();
+    }
+
+    @Test
+    void bookExists_returnsFalseIfBookDoesNotExist() {
+        when(bookRepository.findByNameIgnoreCaseAndAuthor_NameIgnoreCase("Book Title", "Author Name"))
+                .thenReturn(Optional.empty());
+
+        boolean exists = bookService.bookExists("Book Title", "Author Name");
+
+        assertThat(exists).isFalse();
+    }
+
+    @Test
+    void toggleRecommendBook_recommendsBookIfNotAlreadyRecommended() {
+        Book book = Book.builder().id(1L).name("Book Title").build();
+        when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
+        when(bookRecommendationRepository.findByAdminNameAndBook("adminUser", book)).thenReturn(Optional.empty());
+
+        boolean result = bookService.toggleRecommendBook(1L);
+
+        assertThat(result).isTrue();
+        verify(bookRecommendationRepository).save(any(BookRecommendation.class));
+    }
+
+    @Test
+    void toggleRecommendBook_unrecommendsBookIfAlreadyRecommended() {
+        Book book = Book.builder().id(1L).name("Book Title").build();
+        BookRecommendation rec = BookRecommendation.builder().id(2L).adminName("adminUser").book(book).build();
+        when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
+        when(bookRecommendationRepository.findByAdminNameAndBook("adminUser", book)).thenReturn(Optional.of(rec));
+
+        boolean result = bookService.toggleRecommendBook(1L);
+
+        assertThat(result).isFalse();
+        verify(bookRecommendationRepository).delete(rec);
+    }
+
+    @Test
+    void toggleRecommendBook_throwsExceptionIfNotAuthenticated() {
+        // Simulate unauthenticated context
+        SecurityContextHolder.clearContext();
+        Book book = Book.builder().id(1L).name("Book Title").build();
+        when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
+
+        assertThatThrownBy(() -> bookService.toggleRecommendBook(1L))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Unauthorized");
+    }
+
+
+
+    @Test
+    void findBooksByAuthorId_returnsBooksPage() {
+        Author author = new Author();
+        author.setId(1L);
+        when(authorRepository.findById(1L)).thenReturn(Optional.of(author));
+
+        Book book = new Book();
+        book.setId(10L);
+        book.setName("Book Title");
+        book.setAuthor(author);
+
+        BookDto bookDto = new BookDto();
+        bookDto.setId(10L);
+        bookDto.setName("Book Title");
+        bookDto.setAuthorId(1L);
+        bookDto.setAuthorName("Author Name");
+        bookDto.setAuthorLink("/authors/1");
+
+        Page<Book> bookPage = new PageImpl<>(List.of(book), PageRequest.of(0, 10), 1);
+        when(bookRepository.findByAuthorId(1L, PageRequest.of(0, 10))).thenReturn(bookPage);
+        when(bookMapper.toDto(book)).thenReturn(bookDto);
+
+        Page<BookDto> result = bookService.findBooksByAuthorId(1L, PageRequest.of(0, 10));
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).getId()).isEqualTo(10L);
+        assertThat(result.getContent().get(0).getAuthorLink()).isEqualTo("/authors/1");
+    }
+
+    @Test
+    void findBooksByAuthorId_throwsResourceNotFoundException() {
+        when(authorRepository.findById(99L)).thenReturn(Optional.empty());
+        assertThatThrownBy(() -> bookService.findBooksByAuthorId(99L, PageRequest.of(0, 10)))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Author not found with id: 99");
+    }
+    @Test
+    void getBookById_returnsBookDtoWithAuthorLink() {
+        Book book = new Book();
+        book.setId(10L);
+        book.setName("Book Title");
+        Author author = new Author();
+        author.setId(1L);
+        author.setName("Author Name");
+        book.setAuthor(author);
+
+        BookDto bookDto = new BookDto();
+        bookDto.setId(10L);
+        bookDto.setName("Book Title");
+        bookDto.setAuthorId(1L);
+        bookDto.setAuthorName("Author Name");
+
+        when(bookRepository.findById(10L)).thenReturn(Optional.of(book));
+        when(bookMapper.toDto(book)).thenReturn(bookDto);
+
+        Optional<BookDto> result = bookService.getBookById(10L);
+
+        assertThat(result).isPresent();
+        assertThat(result.get().getAuthorLink()).isEqualTo("/authors/1");
+    }
 
     private final BookService bookService = new BookService(bookRepository, authorRepository,bookMapper);
     @Test
@@ -92,11 +231,17 @@ class BookServiceTest {
         assertThat(result).isEmpty();
     }
     @Test
+    void getBookById_returnsEmptyIfNotFound() {
+        when(bookRepository.findById(99L)).thenReturn(Optional.empty());
+        Optional<BookDto> result = bookService.getBookById(99L);
+        assertThat(result).isEmpty();
+    }
+    @Test
     void testListBooks() {
         BookRepository bookRepository = mock(BookRepository.class);
         BookMapper bookMapper = mock(BookMapper.class);
 
-        BookService bookService = new BookService(bookRepository,authorRepository ,bookMapper);
+        BookService bookService = new BookService(bookRepository,authorRepository ,bookMapper,bookRecommendationRepository);
 
         Author author = Author.builder().id(1L).name("Author Name").build();
         Book book = Book.builder().id(10L).name("Book Title").author(author).build();
