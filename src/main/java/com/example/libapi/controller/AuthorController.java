@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/authors")
+//@CrossOrigin(origins = "http://localhost:4040")
 @Tag(name = "Authors", description = "Operations related to authors")
 public class AuthorController {
     private final AuthorService authorService;

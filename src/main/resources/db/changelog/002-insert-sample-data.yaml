@@ -6,21 +6,32 @@ databaseChangeLog:
         - dbms:
             type: postgresql
       changes:
-        - insert:
-            tableName: authors
-            columns:
-              - column: { name: name, value: "William Shakespeare" }
+        - sql:
+            sql: |
+              WITH new_author AS (
+                  INSERT INTO authors (name)
+                  VALUES ('William Shakespeare')
+                  RETURNING id
+              )
+              INSERT INTO books (author_id, name)
+              SELECT new_author.id, titles.title
+              FROM (VALUES ('Romeo and Juliet'), ('Hamlet')) AS titles(title)
+              CROSS JOIN new_author;
+#        - insert:
+#            tableName: authors
+#            columns:
+#              - column: { name: name, value: "William Shakespeare" }
 #        - insert:
 #            tableName: authors
 #            columns:
 #              - column: { name: name, value: "Jane Austen" }
 #              - column: { name: id, valueNumeric: 2 }
 
-        - insert:
-            tableName: books
-            columns:
-              - column: { name: name, value: "Romeo and Juliet" }
-              - column: { name: author_id, valueNumeric: 1 }
+#        - insert:
+#            tableName: books
+#            columns:
+#              - column: { name: name, value: "Romeo and Juliet" }
+#              - column: { name: author_id, valueNumeric: 1 }
 
 #        - insert:
 #            tableName: authors

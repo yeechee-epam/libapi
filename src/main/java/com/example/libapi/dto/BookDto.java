@@ -16,4 +16,7 @@ public class BookDto {
     @Size(max = 50,message = "author name must be <= 50 characters")
     private String authorName;//new author or search
     private String authorLink;
+//for admin (logged in) only
+    private Boolean recommendedByMe;
+
 }

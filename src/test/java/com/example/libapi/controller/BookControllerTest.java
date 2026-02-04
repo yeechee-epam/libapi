@@ -5,6 +5,7 @@ import com.example.libapi.config.TestSecurityConfig;
 import com.example.libapi.dto.BookDto;
 import com.example.libapi.mapper.BookMapper;
 import com.example.libapi.service.BookService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -31,6 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 //@org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
 @WebMvcTest(BookController.class)
 @AutoConfigureRestTestClient
+@AutoConfigureMockMvc(addFilters = false)
 @org.springframework.test.context.TestPropertySource(properties = {
 
 //1/26-to disable all oauth2
@@ -53,6 +55,12 @@ class BookControllerTest {
     //1/27
     @MockitoBean
     private ApplicationProperties applicationProperties;
+
+//    @BeforeEach
+//    void setup()
+//    {
+//        Mockito.when(applicationProperties.getClientOriginUrl()).thenReturn("http://localhost:4040");
+//    }
 
     @Test
     @DisplayName("GET /books returns paginated list of books")
