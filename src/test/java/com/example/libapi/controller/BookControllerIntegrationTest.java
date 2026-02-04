@@ -1,5 +1,6 @@
 package com.example.libapi.controller;
 
+import com.example.libapi.config.TestSecurityConfig;
 import com.example.libapi.entity.Author;
 import com.example.libapi.entity.Book;
 import com.example.libapi.repository.AuthorRepository;
@@ -9,18 +10,39 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.context.annotation.Import;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.client.RestTestClient;
 import org.springframework.http.MediaType;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
-@ActiveProfiles({"test"})
-@SpringBootTest
+//@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
+//@ActiveProfiles({"test"})
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Testcontainers
+//1/26-2 bcos there is a conflict btw security config n main n testsecurityconfig class in test
+@ActiveProfiles({"test"})//no need; test container will inject db config
+
 @AutoConfigureRestTestClient
+//1/26-disable security issues at endpoint (disable auth0)
+@Import(TestSecurityConfig.class)
+
 class BookControllerIntegrationTest {
+    @Container
+    @ServiceConnection
+    static PostgreSQLContainer<?> postgreSQLContainer=
+            new PostgreSQLContainer<>("postgres")
+                    .withDatabaseName("libapidb_test")
+                    .withUsername("admin")
+                    .withPassword("root");
 
     @Autowired
     private AuthorRepository authorRepository;
@@ -30,6 +52,9 @@ class BookControllerIntegrationTest {
 
     @Autowired
     private RestTestClient restTestClient;
+    //    1/26-mocking oauth2's ClientRegistrationRepository client bean to avoid authentication issue
+    @MockitoBean
+    private ClientRegistrationRepository clientRegistrationRepository;
 
     private Long bookAId;
     private Long author1Id;

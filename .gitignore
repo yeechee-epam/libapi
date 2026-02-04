@@ -33,3 +33,14 @@ build/
 .vscode/
 
 src/main/resources/application.properties
+
+### angular ###
+/app/dist
+/app/node_modules
+/app/.angular/cache
+/app/.env
+/app/package-lock.json
+/app/tmp
+/app/out-tsc
+/app/bazel-out
+
