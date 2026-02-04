@@ -1,6 +1,7 @@
 package com.example.libapi.config;
 
 import com.example.libapi.config.security.AuthenticationErrorHandler;
+import com.example.libapi.config.security.AuthorizationErrorHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -23,7 +24,7 @@ public class SecurityConfig {
     private final AuthenticationErrorHandler authenticationErrorHandler;
 
     @Bean
-    public SecurityFilterChain httpSecurity(final HttpSecurity http) throws Exception {
+    public SecurityFilterChain httpSecurity(final HttpSecurity http, AuthorizationErrorHandler authorizationErrorHandler) throws Exception {
         return http
                 .authorizeHttpRequests(authz -> authz
                         // Protect these endpoints
@@ -40,7 +41,9 @@ public class SecurityConfig {
 //                        .jwt(Customizer.withDefaults())
 //                        .jwtAuthenticationConverter
                         .jwt(jwt->jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
-                        .authenticationEntryPoint(authenticationErrorHandler))
+                        .authenticationEntryPoint(authenticationErrorHandler)
+                        .accessDeniedHandler(authorizationErrorHandler))
+
                 .build();
     }
     @Bean

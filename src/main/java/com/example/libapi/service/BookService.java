@@ -4,13 +4,16 @@ import com.example.libapi.dto.BookDto;
 import com.example.libapi.entity.Author;
 import com.example.libapi.entity.Book;
 //import com.example.libapi.repository.AuthorRepository;
+import com.example.libapi.entity.BookRecommendation;
 import com.example.libapi.exception.DuplicateBookException;
 import com.example.libapi.exception.ResourceNotFoundException;
 import com.example.libapi.mapper.BookMapper;
 import com.example.libapi.repository.AuthorRepository;
 import com.example.libapi.repository.BookRepository;
+import com.example.libapi.repository.BookRecommendationRepository;
 import jakarta.transaction.Transactional;
 
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -27,12 +30,13 @@ public class BookService {
     private final BookRepository bookRepository;
     private final AuthorRepository authorRepository;
     private final BookMapper bookMapper;
-
-public BookService(BookRepository bookRepository,AuthorRepository authorRepository,BookMapper bookMapper)
+    private final BookRecommendationRepository bookRecommendationRepository;
+public BookService(BookRepository bookRepository,AuthorRepository authorRepository,BookMapper bookMapper,BookRecommendationRepository bookRecommendationRepository)
     {
         this.bookRepository=bookRepository;
         this.authorRepository=authorRepository;
         this.bookMapper=bookMapper;
+        this.bookRecommendationRepository=bookRecommendationRepository;
     }
 
     public Page<BookDto> list(Pageable pageable)
@@ -52,6 +56,25 @@ public Optional<BookDto> getBookById(Long id) {
         if (book.getAuthor() != null && book.getAuthor().getId() != null) {
             dto.setAuthorLink("/authors/" + book.getAuthor().getId());
         }
+//        to show recommend icon or not
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        if (auth != null
+                && auth.isAuthenticated()
+                && !(auth instanceof AnonymousAuthenticationToken)
+                && auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_admin"))) {
+
+            String adminName = auth.getName();
+            boolean recommended = bookRecommendationRepository
+                    .findByAdminNameAndBook(adminName, book)
+                    .isPresent();
+
+            dto.setRecommendedByMe(recommended);
+        } else {
+            dto.setRecommendedByMe(false);
+        }
+
         return dto;
     });
 
@@ -124,6 +147,7 @@ public Optional<BookDto> getBookById(Long id) {
 
         }
         System.out.println("A book has been created by: "+username+((email!=null)?email:""));
+        //A book has been created by: github|xxx
 
         // Find or create author by name (case-insensitive)
         Author author = authorRepository.findByNameIgnoreCase(bookDto.getAuthorName().trim())
@@ -187,4 +211,48 @@ public void deleteBook(Long id) {
             .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + id));
     bookRepository.delete(book);
 }
+
+//recommend
+@Transactional
+public boolean toggleRecommendBook(Long bookId) {
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    if (auth == null || !auth.isAuthenticated() || auth instanceof AnonymousAuthenticationToken) {
+        throw new RuntimeException("Unauthorized"); // or other custom exception
+    }
+    String adminName = auth.getName();
+//fetch book
+    Book book = bookRepository.findById(bookId)
+            .orElseThrow(() ->
+                    new ResourceNotFoundException("Book not found with id: " + bookId));
+//check if recommendation already exists
+    Optional<BookRecommendation> existing =
+            bookRecommendationRepository.findByAdminNameAndBook(adminName, book);
+
+    if (existing.isPresent()) {
+        // UNRECOMMEND ie remove row fr rec table
+        bookRecommendationRepository.delete(existing.get());
+        return false; // now NOT recommended
+    } else {
+        // RECOMMEND ie create row in rec table
+        BookRecommendation rec = BookRecommendation.builder()
+                .adminName(adminName)
+                .book(book)
+                .build();
+        bookRecommendationRepository.save(rec);
+        return true; // now recommended
+    }
+}
+
+    //    get recommended books by an admin
+public List<Book> getBooksRecommendedByCurrentAdmin() {
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    String adminName = auth.getName();
+
+    return bookRecommendationRepository.findByAdminName(adminName)
+            .stream()
+            .map(BookRecommendation::getBook)
+            .toList();
+}
+
+
 }
