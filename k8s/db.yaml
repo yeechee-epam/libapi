@@ -1,0 +1,84 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: libapidb
+  namespace: lib
+  labels:
+    app: libapidb
+spec:
+  ports:
+    - port: 5432
+      targetPort: 5432
+  selector:
+    app: libapidb
+  clusterIP: None  # headless service for StatefulSet
+---
+# PersistentVolume for libapidb
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: libapidb-pv
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/data/libapidb"
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""   # Must match PVC in StatefulSet
+
+---
+
+# StatefulSet for libapidb
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: libapidb
+  namespace: lib
+  labels:
+    app: libapidb
+
+spec:
+  serviceName: libapidb     # existing headless service
+  replicas: 1
+  selector:
+    matchLabels:
+      app: libapidb
+      version:
+  template:
+    metadata:
+      labels:
+        app: libapidb
+
+    spec:
+      containers:
+        - name: postgres
+          image: postgres
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: libapidb
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: libapi-db-secret
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: libapi-db-secret
+                  key: POSTGRES_PASSWORD
+          volumeMounts:
+            - name: libapidb-data
+              mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+    - metadata:
+        name: libapidb-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 5Gi
+        storageClassName: ""   # binds to the pre-created PV

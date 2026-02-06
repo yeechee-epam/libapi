@@ -1,0 +1,87 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: libapi-backend
+  namespace: lib
+
+spec:
+  selector:
+    app: libapi-backend
+  ports:
+    - protocol: TCP
+      port: 6060
+      targetPort: 6060
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: libapi-backend
+  namespace: lib
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: libapi-backend
+  template:
+    metadata:
+      labels:
+        app: libapi-backend
+    spec:
+      containers:
+        - name: libapi-backend-container
+          image: yeecheeepam/libapi:latest
+          ports:
+            - containerPort: 6060
+          imagePullPolicy: Always
+          env:
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: libapi-db-secret
+                  key: POSTGRES_USERNAME
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: libapi-db-secret
+                  key: POSTGRES_PASSWORD
+          volumeMounts:
+            - name: config
+              mountPath: /config
+
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "200Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1000Mi"
+      volumes:
+        - name: config
+          configMap:
+            name: lib-config
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: libapi-backend-ingress
+  namespace: lib
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-nginx-cert"
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts: [ library-cru.xyz ]
+    secretName: lib-tls
+  rules:
+    - host: library-cru.xyz
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: libapi-backend
+                port:
+                  number: 6060

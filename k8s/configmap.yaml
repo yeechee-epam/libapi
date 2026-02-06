@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: lib-config
+data:
+  application.properties: |
+    spring.application.name=libapi
+
+    application.client-origin-url=
+
+    # Liquibase
+    spring.liquibase.enabled=true
+    spring.liquibase.change-log=classpath:/db/changelog/db.changelog-master.yaml
+
+    # Datasource
+    spring.datasource.driver-class-name=org.postgresql.Driver
+    spring.datasource.url=jdbc:postgresql://libapidb:5432/libapidb
+
+    # JPA
+    spring.jpa.hibernate.ddl-auto=none
+    spring.jpa.show-sql=true
+    spring.jpa.hibernate.naming.physical-strategy=org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+
+    # others
+    spring.web.resources.add-mappings=false
+
+    # auth0
+    spring.security.oauth2.resourceserver.jwt.issuer-uri=https://dev-xkl6rfiq0rmh5wfz.us.auth0.com/
+    spring.security.oauth2.resourceserver.jwt.audiences=
