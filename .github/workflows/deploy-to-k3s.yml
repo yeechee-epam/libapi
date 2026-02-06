@@ -52,11 +52,11 @@ jobs:
 #        if: steps.config1.outcome == 'success' && steps.config2.outcome == 'success'
 #        run: kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
         run: |
-        if ! kubectl get ns ingress-nginx >/dev/null 2>&1; then
-        kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/cloud/deploy.yaml
-        else
-          echo "Ingress already installed"
-        fi
+          if ! kubectl get ns ingress-nginx >/dev/null 2>&1; then
+            kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/cloud/deploy.yaml
+          else
+            echo "Ingress already installed"
+          fi
       - name: Deploy database
         run: kubectl apply -f $PWD/k8s/db.yaml
 
