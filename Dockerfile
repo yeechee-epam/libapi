@@ -3,10 +3,6 @@
 #COPY target/*.jar app.jar
 #EXPOSE 6060
 #ENTRYPOINT ["java", "-jar", "app.jar"]
-// Source - https://stackoverflow.com/a/76197524
-// Posted by Introspective
-// Retrieved 2026-02-06, License - CC BY-SA 4.0
-
 FROM amazoncorretto:17.0.7-alpine
 
 # Add app user
