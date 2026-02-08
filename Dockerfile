@@ -1,8 +1,3 @@
-#FROM openjdk:17-jdk-alpine
-#WORKDIR /app
-#COPY target/*.jar app.jar
-#EXPOSE 6060
-#ENTRYPOINT ["java", "-jar", "app.jar"]
 FROM amazoncorretto:17.0.7-alpine
 
 # Add app user
@@ -14,8 +9,8 @@ RUN mkdir /app && \
     chown -R $APPLICATION_USER /app
 
 USER 1000
+COPY --chown=1000:1000 target/*.jar /app/app.jar
 
-COPY --chown=1000:1000 ./myapp-0.0.1-SNAPSHOT.jar /app/app.jar
 WORKDIR /app
 
 EXPOSE 6060

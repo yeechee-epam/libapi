@@ -6,7 +6,8 @@ data:
   application.properties: |
     spring.application.name=libapi
 
-    application.client-origin-url=
+    application.client-origin-url=https://lucent-bublanina-88ba1f.netlify.app
+
 
     # Liquibase
     spring.liquibase.enabled=true
