@@ -25,11 +25,6 @@ jobs:
         with:
           version: 'v1.26.0'
 
-      - name: Fetch Kubernetes Cluster Details
-        run: |
-                kubectl version --short
-                echo "------------------------------"
-                kubectl get nodes
       - name: Configure Kubeconfig
         id: config1
         run: |
@@ -39,6 +34,12 @@ jobs:
       - name: Set Kubeconfig env
         id: config2
         run: echo "KUBECONFIG=$PWD/kubeconfig.yaml">> $GITHUB_ENV
+
+
+      - name: Fetch Kubernetes Cluster Details
+        run: |
+                kubectl version 
+                kubectl get nodes
 
       - name: Create/update k8s secrets
         run: |
