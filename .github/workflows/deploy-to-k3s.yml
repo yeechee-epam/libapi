@@ -53,6 +53,8 @@ jobs:
             --namespace=lib \
             --dry-run=client -o yaml | kubectl apply -f -
 #          'apply' ensures secret is created/updated only if missing/changed - so idempotent
+          kubectl get libapi-db-secret
+
 
       - name: Deploy database
         run: kubectl apply -f $PWD/k8s/db.yaml
@@ -121,6 +123,8 @@ jobs:
           set -e
           echo "Pods in lib namespace:"
           kubectl get pods -n lib
+          
+          
       
           POD_NAME=$(kubectl get pods -n lib -l app=libapi-backend -o jsonpath="{.items[0].metadata.name}")
           if [ -z "$POD_NAME" ]; then
