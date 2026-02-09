@@ -72,10 +72,10 @@ metadata:
 spec:
   ingressClassName: nginx
   tls:
-  - hosts: [ library-cru.xyz ]
+  - hosts: [ api.library-cru.xyz ]
     secretName: lib-tls
   rules:
-    - host: library-cru.xyz
+    - host: api.library-cru.xyz
       http:
         paths:
           - path: /

@@ -2,11 +2,12 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: lib-config
+  namespace: lib
 data:
   application.properties: |
     spring.application.name=libapi
 
-    application.client-origin-url=https://lucent-bublanina-88ba1f.netlify.app
+    application.client-origin-url=https://library-cru.xyz
 
 
     # Liquibase
@@ -27,5 +28,5 @@ data:
 
     # auth0
     spring.security.oauth2.resourceserver.jwt.issuer-uri=https://dev-xkl6rfiq0rmh5wfz.us.auth0.com/
-    spring.security.oauth2.resourceserver.jwt.audiences=https://library-cru.xyz
+    spring.security.oauth2.resourceserver.jwt.audiences=https://api.library-cru.xyz
 
