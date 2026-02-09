@@ -43,7 +43,7 @@ jobs:
 
       - name: Create/update k8s secrets
         run: |
-          kubectl apply $PWD/k8s/namespace.yaml
+          kubectl apply -f $PWD/k8s/namespace.yaml
           kubectl create secret generic libapi-db-secret \
             --from-literal=POSTGRES_USERNAME=${{secrets.DB_USERNAME}} \
             --from-literal=POSTGRES_PASSWORD=${{secrets.DB_PASSWORD}} \
