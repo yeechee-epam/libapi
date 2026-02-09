@@ -41,7 +41,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: libapi-db-secret
-                  key: POSTGRES_USERNAME
+                  key: POSTGRES_USER
             - name: SPRING_DATASOURCE_PASSWORD
               valueFrom:
                 secretKeyRef:

@@ -116,36 +116,30 @@ jobs:
           kubectl describe certificate lib-tls -n lib
           kubectl get order -n lib
           kubectl get challenge -n lib
-      
+
       - name: Verify cluster
         run: |
           set -e
-          echo "Pods in lib namespace:"
-          kubectl get pods -n lib
-          
-          
-      
+
+          echo "Waiting for backend pod to be Ready..."
+          kubectl wait --for=condition=Ready pod \
+           -l app=libapi-backend \
+            -n lib \
+            --timeout=180s
+
           POD_NAME=$(kubectl get pods -n lib -l app=libapi-backend -o jsonpath="{.items[0].metadata.name}")
-          if [ -z "$POD_NAME" ]; then
-            echo "No libapi-backend pod found!"
-            exit 1
-          fi
-      
+
           echo "Describing pod $POD_NAME"
           kubectl describe pod $POD_NAME -n lib
-      
+
           echo "Logs from pod $POD_NAME"
           kubectl logs $POD_NAME -n lib
-      
-          echo "Services in lib namespace:"
+
+          echo "Services:"
           kubectl get svc -n lib
-      
-          echo "Endpoints in lib namespace:"
-          kubectl get endpoints -n lib
-      
-          echo "Ingress in lib namespace:"
+
+          echo "Ingress:"
           kubectl get ingress -n lib
-          kubectl describe ingress libapi-backend-ingress -n lib
 
 
 
