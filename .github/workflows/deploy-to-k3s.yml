@@ -53,7 +53,7 @@ jobs:
             --namespace=lib \
             --dry-run=client -o yaml | kubectl apply -f -
           # 'apply' ensures secret is created/updated only if missing/changed - so idempotent
-          kubectl get libapi-db-secret
+          kubectl get secret/libapi-db-secret -n lib
 
       - name: Deploy database
         run: kubectl apply -f $PWD/k8s/db.yaml
