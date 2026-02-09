@@ -40,6 +40,9 @@ jobs:
         run: |
                 kubectl version 
                 kubectl get nodes
+# persistent / idempotent resources
+      - name: Create namespace
+        run: kubectl apply -f $PWD/k8s/namespace.yaml
 
       - name: Create/update k8s secrets
         run: |
@@ -49,6 +52,14 @@ jobs:
             --from-literal=POSTGRES_PASSWORD=${{secrets.DB_PASSWORD}} \
             --namespace=lib \
             --dry-run=client -o yaml | kubectl apply -f -
+#          'apply' ensures secret is created/updated only if missing/changed - so idempotent
+
+      - name: Deploy database
+        run: kubectl apply -f $PWD/k8s/db.yaml
+
+      - name: Apply ConfigMap
+        run: kubectl apply -f $PWD/k8s/configmap.yaml
+#-------end of persistent/idempotent resources-------------
 
       - name: Install Ingress controller
 #        if: steps.config1.outcome == 'success' && steps.config2.outcome == 'success'
@@ -59,11 +70,7 @@ jobs:
           else
             echo "Ingress already installed"
           fi
-      - name: Deploy database
-        run: kubectl apply -f $PWD/k8s/db.yaml
 
-      - name: Apply ConfigMap
-        run: kubectl apply -f $PWD/k8s/configmap.yaml
 
       - name: Install Helm
         uses: azure/setup-helm@v3
