@@ -52,9 +52,8 @@ jobs:
             --from-literal=POSTGRES_PASSWORD=${{secrets.DB_PASSWORD}} \
             --namespace=lib \
             --dry-run=client -o yaml | kubectl apply -f -
-#          'apply' ensures secret is created/updated only if missing/changed - so idempotent
+          # 'apply' ensures secret is created/updated only if missing/changed - so idempotent
           kubectl get libapi-db-secret
-
 
       - name: Deploy database
         run: kubectl apply -f $PWD/k8s/db.yaml
