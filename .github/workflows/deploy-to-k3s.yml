@@ -48,7 +48,7 @@ jobs:
         run: |
           kubectl apply -f $PWD/k8s/namespace.yaml
           kubectl create secret generic libapi-db-secret \
-            --from-literal=POSTGRES_USERNAME=${{secrets.DB_USERNAME}} \
+            --from-literal=POSTGRES_USER=${{secrets.DB_USERNAME}} \
             --from-literal=POSTGRES_PASSWORD=${{secrets.DB_PASSWORD}} \
             --namespace=lib \
             --dry-run=client -o yaml | kubectl apply -f -
