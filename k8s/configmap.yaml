@@ -28,5 +28,5 @@ data:
 
     # auth0
     spring.security.oauth2.resourceserver.jwt.issuer-uri=https://dev-xkl6rfiq0rmh5wfz.us.auth0.com/
-    spring.security.oauth2.resourceserver.jwt.audiences=https://api.library-cru.xyz
+    spring.security.oauth2.resourceserver.jwt.audiences=https://api.library-cru.xyz/
 
