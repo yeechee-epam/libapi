@@ -37,6 +37,8 @@ spec:
           env:
             - name: SPRING_CONFIG_LOCATION
               value: /config/application.properties
+            - name: SERVER_PORT
+              value: '6060'
             - name: SPRING_DATASOURCE_USERNAME
               valueFrom:
                 secretKeyRef:

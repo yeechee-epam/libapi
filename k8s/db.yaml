@@ -54,7 +54,7 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: postgres
+          image: postgres:17-alpine
           ports:
             - containerPort: 5432
           env:
@@ -72,7 +72,7 @@ spec:
                   key: POSTGRES_PASSWORD
           volumeMounts:
             - name: libapidb-data
-              mountPath: /var/lib/postgresql/data
+              mountPath: /var/lib/postgresql
   volumeClaimTemplates:
     - metadata:
         name: libapidb-data
