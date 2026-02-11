@@ -164,6 +164,7 @@ public ResponseEntity<Map<String, Boolean>> toggleRecommend(
     return ResponseEntity.ok(Map.of("recommended", recommended));
 }
 
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/me/recommended-books")
     public List<BookDto> getRecommendedBooksForCurrentAdmin() {
         List<Book> books = bookService.getBooksRecommendedByCurrentAdmin();

@@ -29,6 +29,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authz -> authz
                         // Protect these endpoints
 //                        .requestMatchers("/api/messages/protected", "/api/messages/admin").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/books/me/**").authenticated()
                         .requestMatchers(HttpMethod.POST,"/books").authenticated()
                         // Allow public access to /books and /books/{id}
                         .requestMatchers(HttpMethod.GET, "/books").permitAll()
