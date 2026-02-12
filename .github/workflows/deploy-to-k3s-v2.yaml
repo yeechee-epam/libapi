@@ -106,7 +106,7 @@ jobs:
 #------helm----------------------
       - name: Install Helm chart if not exists
         run: |
-          if [! -f "$PWD/helm/Chart.yaml" ]; then
+          if [ ! -f "$PWD/helm/Chart.yaml" ]; then
             helm create $PWD/helm
             echo "Helm chart created in $PWD/helm"
           else
