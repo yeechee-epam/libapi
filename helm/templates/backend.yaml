@@ -1,0 +1,117 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: libapi-backend
+  namespace: lib
+spec:
+  selector:
+    app: libapi-backend
+  ports:
+    - protocol: TCP
+      port: 6060
+      targetPort: 6060
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: libapi-backend
+  namespace: lib
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: libapi-backend
+  template:
+    metadata:
+      labels:
+        app: libapi-backend
+    spec:
+      containers:
+        - name: libapi-backend-container
+          image: yeecheeepam/libapi:latest
+          ports:
+              - containerPort: 6060
+          imagePullPolicy: Always
+          env:
+            - name: APPLICATION_CLIENT_ORIGIN_URL
+              value: {{ .Values.application.clientOriginUrl | quote }}
+            - name: SPRING_LIQUIBASE_ENABLED
+              value: {{ .Values.liquibase.enabled | quote }}
+            - name: SPRING_LIQUIBASE_CHANGE_LOG
+              value: {{ .Values.liquibase.changeLog | quote }}
+            - name: SPRING_APPLICATION_NAME
+              value: {{ .Values.spring.applicationName | quote }}
+            - name: SERVER_PORT
+              value: {{ .Values.server.port | quote }}
+            - name: SPRING_DATASOURCE_DRIVER_CLASS_NAME
+              value: {{ .Values.spring.datasource.driverClassName | quote }}
+            - name: SPRING_DATASOURCE_URL
+              value: {{ .Values.spring.datasource.url | quote }}
+            - name: SPRING_JPA_HIBERNATE_DDL_AUTO
+              value: {{ .Values.spring.jpa.hibernate.ddlAuto | quote }}
+            - name: SPRING_JPA_SHOW_SQL
+              value: {{ .Values.spring.jpa.showSql | quote }}
+            - name: LOGGING_LEVEL_LIQUIBASE
+              value: {{ .Values.logging.level.liquibase | quote }}
+            - name: DEBUG
+              value: {{ .Values.debug | quote }}
+            - name: SPRING_WEB_RESOURCES_ADD_MAPPINGS
+              value: {{ .Values.web.resources.addMappings | quote }}
+            - name: SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_AUDIENCES
+              value: {{ .Values.security.oauth2.resourceserver.jwt.audiences | quote }}
+            - name: SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI
+              value: {{ .Values.security.oauth2.resourceserver.jwt.issuerUri | quote }}
+            - name: SPRING_JPA_HIBERNATE_NAMING_PHYSICAL_STRATEGY
+              value: {{ .Values.spring.jpa.hibernate.namingPhysicalStrategy | quote }}
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: libapi-db-secret
+                  key: POSTGRES_USER
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: libapi-db-secret
+                  key: POSTGRES_PASSWORD
+          volumeMounts:
+            - name: config
+              mountPath: /config
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "200Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1000Mi"
+# remove configmap mount
+#      volumes:
+#        - name: config
+#          configMap:
+#            name: lib-config
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: libapi-backend-ingress
+  namespace: lib
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-nginx-cert"
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts: [ api.library-cru.xyz ]
+      secretName: lib-tls
+  rules:
+    - host: api.library-cru.xyz
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: libapi-backend
+                port:
+                  number: 6060

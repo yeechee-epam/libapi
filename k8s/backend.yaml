@@ -39,6 +39,12 @@ spec:
               value: /config/application.properties
             - name: SERVER_PORT
               value: '6060'
+#            - name: SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI
+#              value: "https://dev-xkl6rfiq0rmh5wfz.us.auth0.com/"
+#
+#            - name: SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_AUDIENCES
+#              value: "https://api.library-cru.xyz/"
+
             - name: SPRING_DATASOURCE_USERNAME
               valueFrom:
                 secretKeyRef:

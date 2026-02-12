@@ -1,0 +1,41 @@
+#image:
+#  repository: "yeecheeepam/libapi"
+#  tag: "latest"
+
+application:
+  clientOriginUrl: "http://localhost:4040"
+
+liquibase:
+  enabled: true
+  changeLog: "classpath:/db/changelog/db.changelog-master.yaml"
+
+spring:
+  applicationName: "libapi"
+  datasource:
+    driverClassName: "org.postgresql.Driver"
+    url: "jdbc:postgresql://localhost:7543/libapidb"
+  jpa:
+    hibernate:
+      ddlAuto: "none"
+      namingPhysicalStrategy: "org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl"
+    showSql: true
+
+server:
+  port: 6060
+
+logging:
+  level:
+    liquibase: "DEBUG"
+
+debug: true
+
+web:
+  resources:
+    addMappings: false
+
+security:
+  oauth2:
+    resourceserver:
+      jwt:
+        audiences: "http://localhost:6060"
+        issuerUri: "https://dev-xkl6rfiq0rmh5wfz.us.auth0.com/"

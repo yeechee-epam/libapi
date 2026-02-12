@@ -1,0 +1,153 @@
+name: Deploy to k3s
+
+on:
+  workflow_run:
+    workflows:
+      - Build and Push to Docker Hub  # Triggers after the first workflow completes
+    types:
+      - completed
+
+  workflow_dispatch:
+
+jobs:
+  build_and_test:
+    name: ""
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install kubectl CLI
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.26.0'
+
+      - name: Configure Kubeconfig
+        id: config1
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG_RKE2 }}" > kubeconfig.yaml
+
+      - name: Set Kubeconfig env
+        id: config2
+        run: echo "KUBECONFIG=$PWD/kubeconfig.yaml">> $GITHUB_ENV
+
+
+      - name: Fetch Kubernetes Cluster Details
+        run: |
+          kubectl version 
+          kubectl get nodes
+      # persistent / idempotent resources
+      - name: Create namespace
+        run: kubectl apply -f $PWD/k8s/namespace.yaml
+
+      - name: Create/update k8s secrets
+        run: |
+          kubectl apply -f $PWD/k8s/namespace.yaml
+          kubectl create secret generic libapi-db-secret \
+            --from-literal=POSTGRES_USER=${{secrets.DB_USERNAME}} \
+            --from-literal=POSTGRES_PASSWORD=${{secrets.DB_PASSWORD}} \
+            --namespace=lib \
+            --dry-run=client -o yaml | kubectl apply -f -
+          # 'apply' ensures secret is created/updated only if missing/changed - so idempotent
+          kubectl get secret/libapi-db-secret -n lib
+
+      - name: Deploy database
+        run: kubectl apply -f $PWD/k8s/db.yaml
+
+#      - name: Apply ConfigMap
+#        run: kubectl apply -f $PWD/k8s/configmap.yaml
+      #-------end of persistent/idempotent resources-------------
+
+      - name: Install Ingress controller
+        #        if: steps.config1.outcome == 'success' && steps.config2.outcome == 'success'
+        #        run: kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
+        run: |
+          if ! kubectl get ns ingress-nginx >/dev/null 2>&1; then
+            kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/cloud/deploy.yaml
+          else
+            echo "Ingress already installed"
+          fi
+
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: v3.12.0
+
+      - name: Add Jetstack repo
+        run: helm repo add jetstack https://charts.jetstack.io && helm repo update
+
+      #      - name: Install/upgrade cert-manager
+      #        run: |
+      #          helm upgrade --install cert-manager jetstack/cert-manager \
+      #            --namespace cert-manager \
+      #            --create-namespace \
+      #            --version v1.10.1 \
+      #            --set installCRDs=true
+
+      - name: Install cert-manager (if not present)
+        run: |
+          if ! kubectl get ns cert-manager >/dev/null 2>&1; then
+            helm upgrade --install cert-manager jetstack/cert-manager \
+            --namespace cert-manager \
+            --create-namespace \
+            --version v1.12.0 \
+            --set installCRDs=true
+          else
+            echo "cert-manager already installed"
+          fi
+      - name: Apply ClusterIssuer (let's encrypt)
+        #        k8s resource that rep cert authorities tgat geberate signed cert
+        run: kubectl apply -f $PWD/k8s/cluster-issuer.yaml
+
+#      - name: Deploy backend
+#        run: kubectl apply -f $PWD/k8s/backend.yaml
+#------helm----------------------
+#      helm processes all files in templates directory of following directory
+      - name: Deploy backend with Helm
+        run: |
+          helm upgrade --install libapi $PWD/helm \
+          --namespace lib \
+          -f $PWD/helm/values-prod.yaml
+#-------end of helm-----------------
+      - name: Verify Ingress
+        run: |
+          kubectl get ingress -n lib
+          kubectl describe ingress libapi-backend-ingress -n lib
+      - name: Verify Certificate
+        run: |
+          kubectl get certificate -n lib
+          kubectl describe certificate lib-tls -n lib
+          kubectl get order -n lib
+          kubectl get challenge -n lib
+
+      - name: Verify cluster
+        run: |
+          set -e
+
+          echo "Waiting for backend pod to be Ready..."
+          kubectl wait --for=condition=Ready pod \
+           -l app=libapi-backend \
+            -n lib \
+            --timeout=180s
+
+          POD_NAME=$(kubectl get pods -n lib -l app=libapi-backend -o jsonpath="{.items[0].metadata.name}")
+
+          echo "Describing pod $POD_NAME"
+          kubectl describe pod $POD_NAME -n lib
+
+          echo "Logs from pod $POD_NAME"
+          kubectl logs $POD_NAME -n lib
+
+          echo "Services:"
+          kubectl get svc -n lib
+
+          echo "Ingress:"
+          kubectl get ingress -n lib
+
+
+
+
+          
+        
