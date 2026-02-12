@@ -104,6 +104,14 @@ jobs:
 #      - name: Deploy backend
 #        run: kubectl apply -f $PWD/k8s/backend.yaml
 #------helm----------------------
+      - name: Install Helm chart if not exists
+        run: |
+          if [! -f "$PWD/helm/Chart.yaml" ]; then
+            helm create $PWD/helm
+            echo "Helm chart created in $PWD/helm"
+          else
+            echo "Helm chart already exists"
+          fi
 #      helm processes all files in templates directory of following directory
       - name: Deploy backend with Helm
         run: |
