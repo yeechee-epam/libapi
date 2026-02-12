@@ -75,9 +75,10 @@ spec:
                 secretKeyRef:
                   name: libapi-db-secret
                   key: POSTGRES_PASSWORD
-          volumeMounts:
-            - name: config
-              mountPath: /config
+# remove configmap mount
+#          volumeMounts:
+#            - name: config
+#              mountPath: /config
           resources:
             requests:
               cpu: "200m"
