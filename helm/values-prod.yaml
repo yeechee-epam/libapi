@@ -37,5 +37,5 @@ security:
   oauth2:
     resourceserver:
       jwt:
-        audiences: "http://api.library-cru.xyz/"
+        audiences: "https://api.library-cru.xyz/"
         issuerUri: "https://dev-xkl6rfiq0rmh5wfz.us.auth0.com/"
