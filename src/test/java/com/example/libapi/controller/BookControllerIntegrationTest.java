@@ -23,6 +23,8 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import org.springframework.security.test.context.support.WithMockUser;
+
 
 //@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 //@ActiveProfiles({"test"})
@@ -167,6 +169,70 @@ void testCreateBookWithNewAuthorReturns201() {
     assertThat(responseBody).contains("Integration Author");
     assertThat(responseBody).contains("authorLink");
 }
+//-----test authentication/authorization----
+//@Test
+//@WithMockUser(username = "adminUser", roles = "admin")
+//void testCreateBookWithNewAuthorReturns201_WhenAdmin() {
+//
+//    String requestBody = """
+//        {
+//            "name": "Integration Book",
+//            "authorName": "Integration Author"
+//        }
+//        """;
+//
+//    String responseBody = restTestClient.post().uri("/books")
+//            .contentType(MediaType.APPLICATION_JSON)
+//            .body(requestBody)
+//            .exchange()
+//            .expectStatus().isCreated()
+//            .expectBody(String.class)
+//            .returnResult()
+//            .getResponseBody();
+//
+//    assertThat(responseBody).contains("Integration Book");
+//    assertThat(responseBody).contains("Integration Author");
+//}
+//
+//    @Test
+//    @WithMockUser(username = "normalUser", roles = "user")
+//    void testCreateBookForbidden_WhenNotAdmin() {
+//
+//        String requestBody = """
+//        {
+//            "name": "Forbidden Book",
+//            "authorName": "Forbidden Author"
+//        }
+//        """;
+//
+//        restTestClient.post().uri("/books")
+//                .contentType(MediaType.APPLICATION_JSON)
+//                .body(requestBody)
+//                .exchange()
+//                .expectStatus().isForbidden(); // 403
+//    }
+//    @Test
+//    void testCreateBookUnauthorized_WhenNotLoggedIn() {
+//
+//        String requestBody = """
+//        {
+//            "name": "Unauthorized Book",
+//            "authorName": "Unauthorized Author"
+//        }
+//        """;
+//
+//        restTestClient.post().uri("/books")
+//                .contentType(MediaType.APPLICATION_JSON)
+//                .body(requestBody)
+//                .exchange()
+//                .expectStatus().isUnauthorized(); // 401
+//    }
+
+//--------------------end of authentication/authorization------
+
+
+
+
 
     @Test
     void testCreateBookWithExistingAuthorReturns201() {

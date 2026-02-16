@@ -16,7 +16,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import tools.jackson.databind.ObjectMapper;
+//import tools.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Component
 @RequiredArgsConstructor
@@ -31,13 +32,14 @@ public class AuthorizationErrorHandler implements AccessDeniedHandler {
             AccessDeniedException accessDeniedException
     ) throws IOException {
 
-        ErrorMessage errorMessage = ErrorMessage.from("Admin privileges required");
-        String json = mapper.writeValueAsString(errorMessage);
-
-        response.setStatus(HttpStatus.FORBIDDEN.value());
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.getWriter().write(json);
-        response.flushBuffer();
+//        ErrorMessage errorMessage = ErrorMessage.from("Admin privileges required");
+//        String json = mapper.writeValueAsString(errorMessage);
+//
+//        response.setStatus(HttpStatus.FORBIDDEN.value());
+//        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+//        response.getWriter().write(json);
+//        response.flushBuffer();
+        response.sendError(HttpServletResponse.SC_FORBIDDEN);
     }
 }
 
