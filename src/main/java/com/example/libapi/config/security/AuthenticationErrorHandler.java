@@ -19,7 +19,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import tools.jackson.databind.ObjectMapper;
+//import tools.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Component
 @RequiredArgsConstructor
@@ -33,13 +34,22 @@ public class AuthenticationErrorHandler implements AuthenticationEntryPoint {
             final HttpServletResponse response,
             final AuthenticationException authException
     ) throws IOException, ServletException {
-        final var errorMessage = ErrorMessage.from("Requires authentication");
-        final var json = mapper.writeValueAsString(errorMessage);
-
-        response.setStatus(HttpStatus.UNAUTHORIZED.value());
+//        final var errorMessage = ErrorMessage.from("Requires authentication");
+//        final var json = mapper.writeValueAsString(errorMessage);
+//
+//        response.setStatus(HttpStatus.UNAUTHORIZED.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.getWriter().write(json);
+//        response.getWriter().write(json);
+//        response.flushBuffer();
+
+//        response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+//        response.setContentType("application/json");
+        response.getWriter().write("{\"message\":\"Unauthorized\"}");
         response.flushBuffer();
     }
+
+
 }
 

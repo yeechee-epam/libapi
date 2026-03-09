@@ -15,7 +15,7 @@ import org.springframework.security.web.SecurityFilterChain;
 
 import lombok.RequiredArgsConstructor;
 //1/26-2 bcos there is a conflict btw security config n main n testsecurityconfig class in test
-@Profile("!test")
+//@Profile("!test")
 @Configuration
 @RequiredArgsConstructor
 @EnableMethodSecurity
@@ -23,14 +23,16 @@ public class SecurityConfig {
 
     private final AuthenticationErrorHandler authenticationErrorHandler;
 
+//    skipped requestMatchers("/admin") bcos @PreAuthorize already protects
     @Bean
     public SecurityFilterChain httpSecurity(final HttpSecurity http, AuthorizationErrorHandler authorizationErrorHandler) throws Exception {
         return http
+                .csrf(csrf-> csrf.disable())
                 .authorizeHttpRequests(authz -> authz
                         // Protect these endpoints
-//                        .requestMatchers("/api/messages/protected", "/api/messages/admin").authenticated()
+                        .requestMatchers("/admin/**").hasRole("admin")
 //                        .requestMatchers(HttpMethod.GET, "/books/me/**").authenticated()
-                        .requestMatchers(HttpMethod.POST,"/books").authenticated()
+                        .requestMatchers(HttpMethod.POST,"/books").hasRole("admin")
                         // Allow public access to /books and /books/{id}
                         .requestMatchers(HttpMethod.GET, "/books").permitAll()
                         .requestMatchers(HttpMethod.GET, "/books/**").permitAll()
@@ -43,7 +45,8 @@ public class SecurityConfig {
 //                        .jwtAuthenticationConverter
                         .jwt(jwt->jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
                         .authenticationEntryPoint(authenticationErrorHandler)
-                        .accessDeniedHandler(authorizationErrorHandler))
+                        .accessDeniedHandler(authorizationErrorHandler)
+                )
 
                 .build();
     }
