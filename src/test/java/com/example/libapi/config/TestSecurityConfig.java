@@ -28,16 +28,18 @@ public class TestSecurityConfig {
     static final String AUTH0_TOKEN = "token";
     static final String SUB = "sub";
     static final String AUTH0ID = "sms|12345678";
+    public static final String ADMIN_TOKEN = "admin-token";
+    public static final String NO_ROLE_TOKEN = "no-role-token";
 
     @Bean
     public JwtDecoder jwtDecoder() {
         return token -> {
 
-            if ("admin-token".equals(token)) {
+            if (ADMIN_TOKEN.equals(token)) {
                 return buildJwt(List.of("admin"));
             }
 
-            if ("no-role-token".equals(token)) {
+            if (NO_ROLE_TOKEN.equals(token)) {
                 return buildJwt(List.of());//authenticated, no role
             }
 
