@@ -76,7 +76,9 @@ class AdminRecommendationControllerTest {
                 .uri("/admin/recommendations/books")
                 .exchange()
                 .expectStatus().isUnauthorized();
+
     }
 }
 //no token/invalid token - 401
 //valid token, missing role (admin) - 403
+//@WithMockUser = simulating already authenticated user w/ a role

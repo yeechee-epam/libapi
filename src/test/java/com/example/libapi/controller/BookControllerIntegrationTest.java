@@ -157,6 +157,7 @@ void testCreateBookWithNewAuthorReturns201() {
             }
             """;
     String responseBody = restTestClient.post().uri("/books")
+            .header("Authorization", "Bearer " + TestSecurityConfig.ADMIN_TOKEN)
             .contentType(MediaType.APPLICATION_JSON)
             .body(requestBody)
             .exchange()
@@ -244,6 +245,7 @@ void testCreateBookWithNewAuthorReturns201() {
             }
             """;
         String responseBody = restTestClient.post().uri("/books")
+                .header("Authorization", "Bearer " + TestSecurityConfig.ADMIN_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(requestBody)
                 .exchange()
@@ -269,6 +271,7 @@ void testCreateBookWithNewAuthorReturns201() {
             }
             """;
         restTestClient.post().uri("/books")
+                .header("Authorization", "Bearer " + TestSecurityConfig.ADMIN_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(requestBody)
                 .exchange()
@@ -284,6 +287,7 @@ void testCreateBookWithNewAuthorReturns201() {
             }
             """;
         restTestClient.post().uri("/books")
+                .header("Authorization", "Bearer " + TestSecurityConfig.ADMIN_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(requestBody)
                 .exchange()
